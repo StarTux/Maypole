@@ -507,8 +507,9 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                 cmd = cmd.replace("%player%", player.getName());
                 getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
             }
-            player.playSound(player.getEyeLocation(), Sound.ENTITY_ENDERDRAGON_DEATH, 1.0f, 1.0f);
         }
+        player.playSound(player.getEyeLocation(), Sound.ENTITY_ENDERDRAGON_DEATH, 1.0f, 1.0f);
+        player.sendMessage("You return a complete collection to the Maypole.");
         return true;
     }
 
