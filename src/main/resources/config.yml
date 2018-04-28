@@ -1,0 +1,6 @@
+EventWorlds: [ Resource, Resource_nether, Resource_the_end ]
+PoleWorld: Spawn
+PoleCoords: [ 279, 68, 371 ]
+SkullFacings: [ EAST, NORTH, SOUTH ]
+OriginalWinCommands:
+- titles unlock %player% Maypole
