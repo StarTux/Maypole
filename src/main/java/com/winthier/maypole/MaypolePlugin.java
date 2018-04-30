@@ -218,6 +218,21 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Book given to " + target.getName());
             }
             break;
+        case "highscore":
+            {
+                Map<String, Integer> hi = new HashMap<>();
+                List<String> ls = new ArrayList<>();
+                for (String key: getPlayerProgress().getKeys(false)) {
+                    hi.put(key, getPlayerProgress().getConfigurationSection(key).getInt("Completions", 0));
+                    ls.add(key);
+                }
+                Collections.sort(ls, (a, b) -> Integer.compare(hi.get(b), hi.get(a)));
+                int i = 0;
+                for (String key: ls) {
+                    sender.sendMessage("#" + (++i) + " " + hi.get(key) + " " + getPlayerProgress().getConfigurationSection(key).getString("Name", "N/A"));
+                }
+            }
+            break;
         default:
             return false;
         }
