@@ -9,18 +9,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.SkullType;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Skull;
+import org.bukkit.block.data.Directional;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -30,6 +29,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -70,7 +70,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             StringBuilder sb = new StringBuilder();
             for (String tok: toks) {
                 if (sb.length() != 0) sb.append(" ");
-                sb.append(tok.substring(0 ,1));
+                sb.append(tok.substring(0, 1));
                 sb.append(tok.substring(1).toLowerCase());
             }
             this.nice = sb.toString();
@@ -100,6 +100,10 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {
+        if (command.getName().equals("hi")) {
+            highscore(sender);
+            return true;
+        }
         if (args.length == 0) return false;
         switch (args[0]) {
         case "reload":
@@ -111,50 +115,8 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         case "interact":
             if (args.length == 2) {
                 Player target = getServer().getPlayer(args[1]);
-                if (target != null) {
-                    if (!playerReturns(target)) {
-                        ConfigurationSection prog = getPlayerProgress(target);
-                        if (!prog.getBoolean("HasBook")) {
-                            giveBook(target);
-                            prog.set("HasBook", true);
-                            savePlayerProgress();
-                            target.sendMessage("Here, take this book.");
-                            target.playSound(target.getEyeLocation(), Sound.ENTITY_FIREWORK_BLAST, 1.0f, 0.5f);
-                        } else {
-                            StringBuilder sb = new StringBuilder("You still lack ");
-                            boolean comma = false;
-                            for (Collectible collectible: Collectible.values()) {
-                                if (!prog.getBoolean(collectible.key, false)) {
-                                    if (comma) sb.append(", ");
-                                    sb.append(collectible.nice);
-                                    comma = true;
-                                }
-                            }
-                            sb.append(".");
-                            target.sendMessage(sb.toString());
-                            target.playSound(target.getEyeLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1.0f, 0.6f);
-                            int completions = prog.getInt("Completions", 0);
-                            if (completions == 1) {
-                                target.sendMessage("You have completed your collection once before.");
-                            } else if (completions > 1) {
-                                target.sendMessage("You have completed your collection " + ChatColor.GREEN + completions + ChatColor.WHITE + " times.");
-                            }
-                            if (completions > 0) {
-                                Map<String, Integer> hi = new HashMap<>();
-                                List<String> ls = new ArrayList<>();
-                                for (String key: getPlayerProgress().getKeys(false)) {
-                                    hi.put(key, getPlayerProgress().getConfigurationSection(key).getInt("Completions", 0));
-                                    ls.add(key);
-                                }
-                                Collections.sort(ls, (a, b) -> Integer.compare(hi.get(b), hi.get(a)));
-                                for (int i = 0; i < 3 && i < ls.size(); i += 1) {
-                                    String key = ls.get(i);
-                                    target.sendMessage("#" + (i + 1) + " " + ChatColor.GREEN + hi.get(key) + " " + ChatColor.WHITE + getPlayerProgress().getConfigurationSection(key).getString("Name", "N/A"));
-                                }
-                            }
-                        }
-                    }
-                }
+                if (target != null) interact(target);
+                sender.sendMessage("Interaction triggered for " + target.getName());
             }
             break;
         case "test":
@@ -218,8 +180,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Book given to " + target.getName());
             }
             break;
-        case "highscore":
-            {
+        case "highscore": {
                 Map<String, Integer> hi = new HashMap<>();
                 List<String> ls = new ArrayList<>();
                 for (String key: getPlayerProgress().getKeys(false)) {
@@ -233,10 +194,87 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                 }
             }
             break;
+        case "build": {
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage("Player expected.");
+                    return true;
+                }
+                Player player = (Player)sender;
+                buildMaypole(player);
+                sender.sendMessage(player.getName() + " head added to Maypole.");
+            }
+            return true;
         default:
             return false;
         }
         return true;
+    }
+
+    void interact(Player player) {
+        if (playerReturns(player)) return;
+        ConfigurationSection prog = getPlayerProgress(player);
+        if (!prog.getBoolean("HasBook")) {
+            giveBook(player);
+            prog.set("HasBook", true);
+            savePlayerProgress();
+            player.sendMessage("Here, take this book.");
+            player.playSound(player.getEyeLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 0.5f);
+        } else {
+            StringBuilder sb = new StringBuilder(ChatColor.BLUE + "You still lack ");
+            boolean comma = false;
+            for (Collectible collectible: Collectible.values()) {
+                if (!prog.getBoolean(collectible.key, false)) {
+                    if (comma) sb.append(ChatColor.GRAY + ", ");
+                    sb.append(ChatColor.GOLD + collectible.nice);
+                    comma = true;
+                }
+            }
+            sb.append(".");
+            player.sendMessage(sb.toString());
+            player.playSound(player.getEyeLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1.0f, 0.6f);
+            int completions = prog.getInt("Completions", 0);
+            if (completions == 1) {
+                player.sendMessage("You have completed your collection once before.");
+            } else if (completions > 1) {
+                player.sendMessage("You have completed your collection " + ChatColor.GREEN + completions + ChatColor.WHITE + " times.");
+            }
+            if (completions > 0) {
+                Map<String, Integer> hi = new HashMap<>();
+                List<String> ls = new ArrayList<>();
+                for (String key: getPlayerProgress().getKeys(false)) {
+                    hi.put(key, getPlayerProgress().getConfigurationSection(key).getInt("Completions", 0));
+                    ls.add(key);
+                }
+                Collections.sort(ls, (a, b) -> Integer.compare(hi.get(b), hi.get(a)));
+                for (int i = 0; i < 3 && i < ls.size(); i += 1) {
+                    String key = ls.get(i);
+                    player.sendMessage("#" + (i + 1) + " " + ChatColor.GREEN + hi.get(key) + " " + ChatColor.WHITE + getPlayerProgress().getConfigurationSection(key).getString("Name", "N/A"));
+                }
+            }
+        }
+    }
+
+    void highscore(CommandSender sender) {
+        Map<String, Integer> hi = new HashMap<>();
+        List<String> ls = new ArrayList<>();
+        for (String key: getPlayerProgress().getKeys(false)) {
+            hi.put(key, getPlayerProgress().getConfigurationSection(key).getInt("Completions", 0));
+            ls.add(key);
+        }
+        Collections.sort(ls, (a, b) -> Integer.compare(hi.get(b), hi.get(a)));
+        int rank = 0;
+        sender.sendMessage(""
+                           + ChatColor.BLUE + " * * * "
+                           + ChatColor.WHITE + "Maypole"
+                           + ChatColor.GOLD + " Highscore"
+                           + ChatColor.BLUE + " * * * ");
+        for (String key: ls) {
+            sender.sendMessage(ChatColor.GRAY + "#"
+                               + ChatColor.BLUE + (++rank)
+                               + ChatColor.GOLD + " " + hi.get(key)
+                               + ChatColor.BLUE + " " + getPlayerProgress().getConfigurationSection(key).getString("Name", "N/A"));
+            if (rank >= 20) break;
+        }
     }
 
     private YamlConfiguration getPlayerProgress() {
@@ -294,79 +332,65 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         if (!eventWorlds.contains(block.getWorld().getName())) return;
         if (BukkitExploits.getInstance().isPlayerPlaced(block)) return;
         switch (block.getType()) {
-        case RED_ROSE: // Flowers
-            switch (block.getData()) {
-            case 5: // Orange tulip
-                unlockCollectible(player, Collectible.ORANGE_ONION);
-                break;
-            default: break;
-            }
+        case POPPY:
+            unlockCollectible(player, Collectible.ORANGE_ONION);
             break;
-        case WATER_LILY:
+        case LILY_PAD:
             switch (block.getBiome()) {
-            case SWAMPLAND:
-            case MUTATED_SWAMPLAND:
+            case SWAMP:
+            case SWAMP_HILLS:
                 unlockCollectible(player, Collectible.LUCID_LILY);
             default: break;
             }
             break;
         case BROWN_MUSHROOM:
             switch (block.getBiome()) {
-            case SWAMPLAND:
-            case MUTATED_SWAMPLAND:
+            case SWAMP:
+            case SWAMP_HILLS:
                 unlockCollectible(player, Collectible.MISTY_MOREL);
             default: break;
             }
             break;
         case RED_MUSHROOM:
             switch (block.getBiome()) {
-            case HELL:
+            case NETHER:
                 unlockCollectible(player, Collectible.FIRE_AMANITA);
             default: break;
             }
             break;
-        case DOUBLE_PLANT:
-            switch (block.getData()) {
-            case 4: // Rose Bush
-                unlockCollectible(player, Collectible.RED_ROSE);
-                break;
+        case ROSE_BUSH:
+            unlockCollectible(player, Collectible.RED_ROSE);
+            break;
+        case TALL_GRASS:
+            switch (block.getBiome()) {
+            case COLD_OCEAN:
+            case DEEP_COLD_OCEAN:
+            case FROZEN_OCEAN:
+            case FROZEN_RIVER:
+            case DEEP_FROZEN_OCEAN:
+            case ICE_SPIKES:
+            case TAIGA:
+            case TAIGA_HILLS:
+            case SNOWY_TAIGA:
+            case SNOWY_TAIGA_HILLS:
+            case GIANT_TREE_TAIGA:
+            case GIANT_TREE_TAIGA_HILLS:
+            case TAIGA_MOUNTAINS:
+            case SNOWY_TAIGA_MOUNTAINS:
+            case GIANT_SPRUCE_TAIGA:
+            case GIANT_SPRUCE_TAIGA_HILLS:
+                unlockCollectible(player, Collectible.FROST_FLOWER);
             default: break;
             }
             break;
-        case LONG_GRASS:
-            switch (block.getData()) {
-            case 1: // Tall grass
-                switch (block.getBiome()) {
-                case COLD_BEACH:
-                case FROZEN_OCEAN:
-                case FROZEN_RIVER:
-                case ICE_FLATS:
-                case ICE_MOUNTAINS:
-                case MUTATED_ICE_FLATS:
-                case MUTATED_REDWOOD_TAIGA:
-                case MUTATED_REDWOOD_TAIGA_HILLS:
-                case MUTATED_TAIGA:
-                case MUTATED_TAIGA_COLD:
-                case REDWOOD_TAIGA:
-                case REDWOOD_TAIGA_HILLS:
-                case TAIGA:
-                case TAIGA_COLD:
-                case TAIGA_COLD_HILLS:
-                case TAIGA_HILLS:
-                    unlockCollectible(player, Collectible.FROST_FLOWER);
-                default: break;
-                }
-                break;
-            case 2: // Fern
-                switch (block.getBiome()) {
-                case JUNGLE:
-                case JUNGLE_EDGE:
-                case JUNGLE_HILLS:
-                case MUTATED_JUNGLE:
-                case MUTATED_JUNGLE_EDGE:
-                    unlockCollectible(player, Collectible.PIPE_WEED);
-                default: break;
-                }
+        case FERN:
+            switch (block.getBiome()) {
+            case JUNGLE:
+            case JUNGLE_HILLS:
+            case JUNGLE_EDGE:
+            case MODIFIED_JUNGLE:
+            case MODIFIED_JUNGLE_EDGE:
+                unlockCollectible(player, Collectible.PIPE_WEED);
             default: break;
             }
             break;
@@ -374,7 +398,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             switch (block.getBiome()) {
             case DESERT:
             case DESERT_HILLS:
-            case MUTATED_DESERT:
+            case DESERT_LAKES:
                 unlockCollectible(player, Collectible.HEAT_ROOT);
             default: break;
             }
@@ -387,12 +411,18 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             break;
         case SAND:
             switch (block.getBiome()) {
-            case BEACHES:
-            case COLD_BEACH:
-            case STONE_BEACH:
-            case DEEP_OCEAN:
-            case FROZEN_OCEAN:
+            case BEACH:
+            case SNOWY_BEACH:
             case OCEAN:
+            case FROZEN_OCEAN:
+            case DEEP_OCEAN:
+            case WARM_OCEAN:
+            case LUKEWARM_OCEAN:
+            case COLD_OCEAN:
+            case DEEP_WARM_OCEAN:
+            case DEEP_LUKEWARM_OCEAN:
+            case DEEP_COLD_OCEAN:
+            case DEEP_FROZEN_OCEAN:
                 unlockCollectible(player, Collectible.CLAMSHELL);
             default: break;
             }
@@ -400,10 +430,8 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         case PACKED_ICE:
             unlockCollectible(player, Collectible.FROZEN_AMBER);
             break;
-        case LEAVES:
-            if ((block.getData() & 3) == 1) {
-                unlockCollectible(player, Collectible.PINE_CONE);
-            }
+        case SPRUCE_LEAVES:
+            unlockCollectible(player, Collectible.PINE_CONE);
             break;
         case MOSSY_COBBLESTONE:
             unlockCollectible(player, Collectible.CLUMP_OF_MOSS);
@@ -420,18 +448,16 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         if (BukkitExploits.getInstance().isPlayerPlaced(block)) return;
         switch (block.getType()) {
         case LAVA:
-        case STATIONARY_LAVA:
             if (block.getY() > 48
                 && block.getRelative(0, 1, 0).getLightFromSky() == 15) {
                 unlockCollectible(player, Collectible.SPARK_SEED);
             }
             break;
         case WATER:
-        case STATIONARY_WATER:
             switch (block.getBiome()) {
             case DESERT:
             case DESERT_HILLS:
-            case MUTATED_DESERT:
+            case DESERT_LAKES:
                 unlockCollectible(player, Collectible.OASIS_WATER);
                 break;
             default: break;
@@ -444,6 +470,15 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         storePlayerMeta(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!event.hasBlock()) return;
+        Block poleBlock = getPoleBlock();
+        if (poleBlock.equals(event.getClickedBlock())) {
+            interact(event.getPlayer());
+        }
     }
 
     // Return true if the player returns his trophies to the pole
@@ -466,66 +501,67 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         savePlayerProgress();
         // Dish out prizes for first completion
         if (completions == 0) {
-            World world = getServer().getWorld(poleWorld);
-            Block poleBlock = world.getBlockAt(poleCoords.get(0), poleCoords.get(1), poleCoords.get(2));
-            boolean placed = false;
-            while (!placed) {
-                poleBlock = poleBlock.getRelative(0, 1, 0);
-                if (poleBlock.getType() == Material.AIR) {
-                    poleBlock.setType(Material.CONCRETE);
-                    if ((poleBlock.getY() & 1) == 0) {
-                        poleBlock.setData((byte)0);
-                    } else {
-                        poleBlock.setData((byte)3); // 3=blue, 14=red
-                    }
-                }
-                for (BlockFace face: skullFacings) {
-                    Block skullBlock = poleBlock.getRelative(face);
-                    if (skullBlock.getType() != Material.AIR) continue;
-                    skullBlock.setType(Material.SKULL);
-                    switch (face) {
-                    case NORTH: skullBlock.setData((byte)2); break;
-                    case EAST: skullBlock.setData((byte)5); break;
-                    case SOUTH: skullBlock.setData((byte)3); break;
-                    case WEST: skullBlock.setData((byte)4); break;
-                    default: break;
-                    }
-                    Skull skullState = (Skull)(skullBlock.getState());
-                    //skullState.setRotation(face);
-                    skullState.setSkullType(SkullType.PLAYER);
-                    skullState.setOwningPlayer(player);
-                    skullState.update();
-                    new BukkitRunnable() {
-                        @Override public void run() {
-                            skullState.update();
-                        }
-                    }.runTaskLater(this, 20L);
-                    final Location blockLocation = skullBlock.getLocation().add(0.5, 0.5, 0.5);
-                    final Location playerLocation = player.getEyeLocation();
-                    new BukkitRunnable() {
-                        int i = 0;
-                        @Override public void run() {
-                            i += 1;
-                            if (i >= 100) cancel();
-                            Random random = new Random(System.currentTimeMillis());
-                            double p = random.nextDouble();
-                            Vector v = playerLocation.toVector().multiply(p).add(blockLocation.toVector().multiply(1.0 - p));
-                            Location loc = v.toLocation(playerLocation.getWorld(), 0f, 0f);
-                            playerLocation.getWorld().spawnParticle(Particle.SPELL_MOB, loc, 1, 0.5, 0.5, 0.5, -1f);
-                        }
-                    }.runTaskTimer(this, 1, 1);
-                    placed = true;
-                    break;
-                }
-            }
+            buildMaypole(player);
             for (String cmd: originalWinCommands) {
                 cmd = cmd.replace("%player%", player.getName());
                 getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
             }
         }
-        player.playSound(player.getEyeLocation(), Sound.ENTITY_ENDERDRAGON_DEATH, 1.0f, 1.0f);
+        player.playSound(player.getEyeLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0f, 1.0f);
         player.sendMessage("You return a complete collection to the Maypole.");
         return true;
+    }
+
+    Block getPoleBlock() {
+        World world = getServer().getWorld(poleWorld);
+        return world.getBlockAt(poleCoords.get(0), poleCoords.get(1), poleCoords.get(2));
+    }
+
+    void buildMaypole(Player player) {
+        Block poleBlock = getPoleBlock();
+        boolean placed = false;
+        while (!placed) {
+            poleBlock = poleBlock.getRelative(0, 1, 0);
+            if (poleBlock.getType() == Material.AIR) {
+                if ((poleBlock.getY() & 1) == 0) {
+                    poleBlock.setType(Material.WHITE_CONCRETE);
+                } else {
+                    poleBlock.setType(Material.BLUE_CONCRETE);
+                }
+            }
+            for (BlockFace face: skullFacings) {
+                Block skullBlock = poleBlock.getRelative(face);
+                if (skullBlock.getType() != Material.AIR) continue;
+                Directional directional = (Directional)Material.PLAYER_WALL_HEAD.createBlockData();
+                directional.setFacing(face);
+                skullBlock.setBlockData(directional);
+                Skull skullState = (Skull)(skullBlock.getState());
+                skullState.setOwner(player.getName());
+                skullState.setOwningPlayer(player);
+                skullState.update();
+                new BukkitRunnable() {
+                    @Override public void run() {
+                        skullState.update();
+                    }
+                }.runTaskLater(this, 20L);
+                final Location blockLocation = skullBlock.getLocation().add(0.5, 0.5, 0.5);
+                final Location playerLocation = player.getEyeLocation();
+                new BukkitRunnable() {
+                    int i = 0;
+                    @Override public void run() {
+                        i += 1;
+                        if (i >= 100) cancel();
+                        Random random = new Random(System.currentTimeMillis());
+                        double p = random.nextDouble();
+                        Vector v = playerLocation.toVector().multiply(p).add(blockLocation.toVector().multiply(1.0 - p));
+                        Location loc = v.toLocation(playerLocation.getWorld(), 0f, 0f);
+                        playerLocation.getWorld().spawnParticle(Particle.SPELL_MOB, loc, 1, 0.5, 0.5, 0.5, -1f);
+                    }
+                }.runTaskTimer(this, 1, 1);
+                placed = true;
+                break;
+            }
+        }
     }
 
     void giveBook(Player player) {
@@ -600,7 +636,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         book.put("author", "Council of May");
         book.put("title", "Building a Maypole");
         book.put("pages", pages);
-        String cmd = "give " + player.getName() + " minecraft:written_book 1 0 " + JSONValue.toJSONString(book);
+        String cmd = "give " + player.getName() + " minecraft:written_book" + JSONValue.toJSONString(book);
         getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
     }
 

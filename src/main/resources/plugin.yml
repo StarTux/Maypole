@@ -2,10 +2,20 @@ name: Maypole
 description: Maypole Event
 author: StarTux
 version: 0.1
+api-version: 1.13
 main: com.winthier.maypole.MaypolePlugin
-depend: [ Exploits ]
+depend: [Exploits]
 commands:
   maypole:
     description: Admin interface
     permission: maypole.maypole
-    usage: /<command>
+    usage: /maypole
+  hi:
+    description: Maypole highscore
+    permission: maypole.hi
+    usage: /hi
+permissions:
+  maypole.maypole:
+    default: op
+  maypole.hi:
+    default: true
