@@ -297,9 +297,11 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                            + ChatColor.GOLD + " Highscore"
                            + ChatColor.BLUE + " * * * ");
         for (String key: ls) {
+	    int score = hi.get(key);
+	    if (score == 0) break;
             sender.sendMessage(ChatColor.GRAY + "#"
                                + ChatColor.BLUE + (++rank)
-                               + ChatColor.GOLD + " " + hi.get(key)
+                               + ChatColor.GOLD + " " + score
                                + ChatColor.BLUE + " " + getPlayerProgress().getConfigurationSection(key).getString("Name", "N/A"));
             if (rank >= 20) break;
         }
