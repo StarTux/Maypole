@@ -281,7 +281,12 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         Map<String, Integer> hi = new HashMap<>();
         List<String> ls = new ArrayList<>();
         for (String key: getPlayerProgress().getKeys(false)) {
-            hi.put(key, getPlayerProgress().getConfigurationSection(key).getInt("Completions", 0));
+            ConfigurationSection section = getPlayerProgress().getConfigurationSection(key);
+            int score = section.getInt("Completions", 0) * 16;
+            for (Collectible collectible : Collectible.values()) {
+                if (section.getBoolean(collectible.key)) score += 1;
+            }
+            hi.put(key, score);
             ls.add(key);
         }
         Collections.sort(ls, (a, b) -> Integer.compare(hi.get(b), hi.get(a)));
