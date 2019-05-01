@@ -385,6 +385,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         case ROSE_BUSH:
             unlockCollectible(player, Collectible.RED_ROSE);
             break;
+        case GRASS:
         case TALL_GRASS:
             switch (block.getBiome()) {
             case COLD_OCEAN:
