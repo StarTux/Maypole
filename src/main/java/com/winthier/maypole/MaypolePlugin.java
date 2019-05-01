@@ -1,6 +1,10 @@
 package com.winthier.maypole;
 
+import com.cavetale.magicmap.MagicMapPlugin;
+import com.cavetale.magicmap.MagicMapPostRenderEvent;
+import com.cavetale.magicmap.MapCache;
 import com.winthier.exploits.bukkit.BukkitExploits;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
+import javax.imageio.ImageIO;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -30,8 +35,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.map.MapPalette;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -44,6 +48,8 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     private List<Integer> poleCoords;
     private List<BlockFace> skullFacings;
     private List<String> originalWinCommands;
+    private byte[] itemspng;
+    private byte[] itemsmask = new byte[4096];
 
     enum Collectible {
         LUCID_LILY,
@@ -85,8 +91,21 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         playerProgress = null;
         getServer().getPluginManager().registerEvents(this, this);
         parseConfig();
-        for (Player player: getServer().getOnlinePlayers()) {
-            storePlayerMeta(player);
+        try {
+            int a = 0;
+            BufferedImage img = ImageIO.read(getResource("items.png"));
+            this.itemspng = MapPalette.imageToBytes(img);
+            for (int y = 0; y < 32; y += 1) {
+                for (int x = 0; x < 128; x += 1) {
+                    int c = img.getRGB(x, y);
+                    if ((c & 0xFF000000) == 0) {
+                        this.itemsmask[x + y * 128] = 1;
+                        a += 1;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -128,7 +147,6 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                     }
                     getPlayerProgress(target).set("Completions", 0);
                     savePlayerProgress();
-                    storePlayerMeta(target);
                     sender.sendMessage(target.getName() + " set to 0 completions and all collectibles");
                 }
             }
@@ -141,11 +159,20 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                         getPlayerProgress(target).set(collectible.key, true);
                     }
                     savePlayerProgress();
-                    storePlayerMeta(target);
                     sender.sendMessage(target.getName() + " was given all collectibles");
                 }
             }
             break;
+        case "unlock":
+            if (args.length == 3) {
+                Player target = getServer().getPlayer(args[1]);
+                if (target == null) return false;
+                Collectible collectible = Collectible.valueOf(args[2].toUpperCase());
+                getPlayerProgress(target).set(collectible.key, true);
+                savePlayerProgress();
+                sender.sendMessage("" + collectible + " unlocked for " + target.getName() + ".");
+            }
+            return true;
         case "none":
             if (args.length == 2) {
                 Player target = getServer().getPlayer(args[1]);
@@ -154,7 +181,6 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                         getPlayerProgress(target).set(collectible.key, false);
                     }
                     savePlayerProgress();
-                    storePlayerMeta(target);
                     sender.sendMessage(target.getName() + " was cleared of all collectibles");
                 }
             }
@@ -312,17 +338,19 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             maxCompletions = Math.max(maxCompletions, getPlayerProgress().getConfigurationSection(key).getInt("Completions"));
         }
         int completions = progress.getInt("Completions", 0);
-        double chance = 1.0 / (double)(completions + 2);
-        if (completions > 3 && completions >= maxCompletions - 1) chance *= 0.3;
-        Random random = new Random(System.currentTimeMillis());
-        if (random.nextDouble() > chance) return;
+        if (completions > 0) {
+            double chance = 1.0 / (double)(completions + 2);
+            if (completions > 3 && completions >= maxCompletions - 1) chance *= 0.3;
+            Random random = new Random(System.currentTimeMillis());
+            if (random.nextDouble() > chance) return;
+        }
         progress.set(collectible.key, true);
         savePlayerProgress();
-        storePlayerMeta(player);
         player.playSound(player.getEyeLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
-        getServer().dispatchCommand(getServer().getConsoleSender(), "minecraft:title " + player.getName() + " actionbar {\"color\":\"green\",\"text\":\"You collect the " + collectible.nice + ".\"}");
-        player.sendMessage("You collect the " + collectible.nice + ".");
+        player.sendActionBar(ChatColor.GOLD + "You collect the " + collectible.nice + ".");
+        player.sendMessage(ChatColor.GOLD + "You collect the " + collectible.nice + ".");
         player.spawnParticle(Particle.FIREWORKS_SPARK, player.getEyeLocation(), 100, 2.0, 2.0, 2.0, 0.0);
+        MagicMapPlugin.triggerRerender(player);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -468,16 +496,43 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        storePlayerMeta(event.getPlayer());
-    }
-
-    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!event.hasBlock()) return;
         Block poleBlock = getPoleBlock();
         if (poleBlock.equals(event.getClickedBlock())) {
             interact(event.getPlayer());
+        }
+    }
+
+    @EventHandler
+    public void onMapRender(MagicMapPostRenderEvent event) {
+        MapCache map = event.getMapCache();
+        final int off = 96;
+        for (Collectible collectible : Collectible.values()) {
+            int ordinal = collectible.ordinal();
+            int dx = ordinal % 8;
+            int dy = ordinal / 8;
+            for (int y = 0; y < 16; y += 1) {
+                for (int x = 0; x < 16; x += 1) {
+                    int px = dx * 16 + x;
+                    int py = dy * 16 + y;
+                    int idx = px + py * 128;
+                    if (this.itemsmask[idx] == 0) {
+                        map.setPixel(px - 1, py - 1 + off, 119);
+                    }
+                }
+            }
+            if (!getPlayerProgress(event.getPlayer()).getBoolean(collectible.key)) continue;
+            for (int y = 0; y < 16; y += 1) {
+                for (int x = 0; x < 16; x += 1) {
+                    int px = dx * 16 + x;
+                    int py = dy * 16 + y;
+                    int idx = px + py * 128;
+                    if (this.itemsmask[idx] == 0) {
+                        map.setPixel(px, py + off, this.itemspng[idx]);
+                    }
+                }
+            }
         }
     }
 
@@ -638,13 +693,5 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         book.put("pages", pages);
         String cmd = "give " + player.getName() + " minecraft:written_book" + JSONValue.toJSONString(book);
         getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
-    }
-
-    void storePlayerMeta(Player player) {
-        Collectible[] collectibles = Collectible.values();
-        ConfigurationSection prog = getPlayerProgress(player);
-        for (int i = 0; i < collectibles.length; i += 1) {
-            player.setMetadata("Collectible" + i, new FixedMetadataValue(this, prog.getBoolean(collectibles[i].key, false)));
-        }
     }
 }
