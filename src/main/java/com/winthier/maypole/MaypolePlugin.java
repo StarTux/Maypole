@@ -48,6 +48,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     private List<Integer> poleCoords;
     private List<BlockFace> skullFacings;
     private List<String> originalWinCommands;
+    private List<String> anyWinCommands;
     private byte[] itemspng;
     private byte[] itemsmask = new byte[4096];
 
@@ -115,6 +116,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         poleCoords = getConfig().getIntegerList("PoleCoords");
         skullFacings = getConfig().getStringList("SkullFacings").stream().map(a -> BlockFace.valueOf(a.toUpperCase())).collect(Collectors.toList());
         originalWinCommands = getConfig().getStringList("OriginalWinCommands");
+        anyWinCommands = getConfig().getStringList("AnyWinCommands");
     }
 
     @Override
@@ -561,6 +563,10 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                 cmd = cmd.replace("%player%", player.getName());
                 getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
             }
+        }
+        for (String cmd: anyWinCommands) {
+            cmd = cmd.replace("%player%", player.getName());
+            getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
         }
         player.playSound(player.getEyeLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0f, 1.0f);
         player.sendMessage("You return a complete collection to the Maypole.");
