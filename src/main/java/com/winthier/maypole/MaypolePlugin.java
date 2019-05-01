@@ -48,9 +48,10 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     private List<Integer> poleCoords;
     private List<BlockFace> skullFacings;
     private List<String> originalWinCommands;
-    private List<String> anyWinCommands;
+    private List<?> anyWinCommands;
     private byte[] itemspng;
     private byte[] itemsmask = new byte[4096];
+    private final Random random = new Random(System.nanoTime());
 
     enum Collectible {
         LUCID_LILY,
@@ -116,7 +117,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         poleCoords = getConfig().getIntegerList("PoleCoords");
         skullFacings = getConfig().getStringList("SkullFacings").stream().map(a -> BlockFace.valueOf(a.toUpperCase())).collect(Collectors.toList());
         originalWinCommands = getConfig().getStringList("OriginalWinCommands");
-        anyWinCommands = getConfig().getStringList("AnyWinCommands");
+        anyWinCommands = getConfig().getList("AnyWinCommands");
     }
 
     @Override
@@ -143,14 +144,8 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         case "test":
             if (args.length == 2) {
                 Player target = getServer().getPlayer(args[1]);
-                if (target != null) {
-                    for (Collectible collectible: Collectible.values()) {
-                        getPlayerProgress(target).set(collectible.key, true);
-                    }
-                    getPlayerProgress(target).set("Completions", 0);
-                    savePlayerProgress();
-                    sender.sendMessage(target.getName() + " set to 0 completions and all collectibles");
-                }
+                sender.sendMessage("Triggering complete return for " + target.getName() + "...");
+                playerReturns(target);
             }
             break;
         case "all":
@@ -343,7 +338,6 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         if (completions > 0) {
             double chance = 1.0 / (double)(completions + 2);
             if (completions > 3 && completions >= maxCompletions - 1) chance *= 0.3;
-            Random random = new Random(System.currentTimeMillis());
             if (random.nextDouble() > chance) return;
         }
         progress.set(collectible.key, true);
@@ -560,17 +554,28 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         if (completions == 0) {
             buildMaypole(player);
             for (String cmd: originalWinCommands) {
-                cmd = cmd.replace("%player%", player.getName());
-                getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
+                serverCommand(cmd, player);
             }
         }
-        for (String cmd: anyWinCommands) {
-            cmd = cmd.replace("%player%", player.getName());
-            getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
+        if (!this.anyWinCommands.isEmpty()) {
+            Object o = this.anyWinCommands.get(random.nextInt(this.anyWinCommands.size()));
+            if (o instanceof String) {
+                serverCommand((String)o, player);
+            } else if (o instanceof List) {
+                for (Object p : (List)o) {
+                    serverCommand((String)p, player);
+                }
+            }
         }
         player.playSound(player.getEyeLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0f, 1.0f);
         player.sendMessage("You return a complete collection to the Maypole.");
         return true;
+    }
+
+    void serverCommand(String cmd, Player player) {
+        cmd = cmd.replace("%player%", player.getName());
+        getLogger().info("Running command: " + cmd);
+        getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
     }
 
     Block getPoleBlock() {
@@ -612,7 +617,6 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                     @Override public void run() {
                         i += 1;
                         if (i >= 100) cancel();
-                        Random random = new Random(System.currentTimeMillis());
                         double p = random.nextDouble();
                         Vector v = playerLocation.toVector().multiply(p).add(blockLocation.toVector().multiply(1.0 - p));
                         Location loc = v.toLocation(playerLocation.getWorld(), 0f, 0f);

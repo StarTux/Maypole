@@ -5,4 +5,7 @@ SkullFacings: [ WEST, NORTH, SOUTH, EAST ]
 OriginalWinCommands:
 - titles unlock %player% Maypole
 AnyWinCommands:
-- give %player% diamond
+- - give %player% diamond
+  - give %player% emerald
+- - money grant %player% 100
+  - tell player Have some money.
