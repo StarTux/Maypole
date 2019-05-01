@@ -356,7 +356,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         if (!eventWorlds.contains(block.getWorld().getName())) return;
         if (BukkitExploits.getInstance().isPlayerPlaced(block)) return;
         switch (block.getType()) {
-        case POPPY:
+        case ORANGE_TULIP:
             unlockCollectible(player, Collectible.ORANGE_ONION);
             break;
         case LILY_PAD:
