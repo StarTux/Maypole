@@ -411,6 +411,9 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             case SNOWY_TAIGA_MOUNTAINS:
             case GIANT_SPRUCE_TAIGA:
             case GIANT_SPRUCE_TAIGA_HILLS:
+	    case SNOWY_TUNDRA:
+	    case SNOWY_MOUNTAINS:
+	    case SNOWY_BEACH:
                 unlockCollectible(player, Collectible.FROST_FLOWER);
             default: break;
             }
