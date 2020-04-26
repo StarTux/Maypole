@@ -3,7 +3,10 @@ package com.winthier.maypole;
 import com.cavetale.magicmap.MagicMapPlugin;
 import com.cavetale.magicmap.MagicMapPostRenderEvent;
 import com.cavetale.magicmap.MapCache;
-import com.winthier.exploits.bukkit.BukkitExploits;
+import com.cavetale.worldmarker.ItemMarker;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.winthier.exploits.Exploits;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -29,17 +32,18 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapPalette;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import org.json.simple.JSONValue;
 
 public final class MaypolePlugin extends JavaPlugin implements Listener {
     private YamlConfiguration playerProgress = null;
@@ -52,6 +56,8 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     private byte[] itemspng;
     private byte[] itemsmask = new byte[4096];
     private final Random random = new Random(System.nanoTime());
+    Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+    static final String BOOK_ID = "maypole:book";
 
     enum Collectible {
         LUCID_LILY,
@@ -71,7 +77,9 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         CLUMP_OF_MOSS,
         FIRE_AMANITA;
 
-        final String key, nice;
+        final String key;
+        final String nice;
+
         Collectible() {
             this.key = name().toLowerCase();
             String[] toks = name().split("_");
@@ -115,7 +123,8 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         eventWorlds = getConfig().getStringList("EventWorlds");
         poleWorld = getConfig().getString("PoleWorld");
         poleCoords = getConfig().getIntegerList("PoleCoords");
-        skullFacings = getConfig().getStringList("SkullFacings").stream().map(a -> BlockFace.valueOf(a.toUpperCase())).collect(Collectors.toList());
+        skullFacings = getConfig().getStringList("SkullFacings").stream()
+            .map(a -> BlockFace.valueOf(a.toUpperCase())).collect(Collectors.toList());
         originalWinCommands = getConfig().getStringList("OriginalWinCommands");
         anyWinCommands = getConfig().getList("AnyWinCommands");
     }
@@ -194,7 +203,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                 }
             }
             break;
-        case "book":
+        case "book": {
             if (args.length == 2) {
                 Player target = getServer().getPlayer(args[1]);
                 if (target != null) {
@@ -203,30 +212,34 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Book given to " + target.getName());
             }
             break;
+        }
         case "highscore": {
                 Map<String, Integer> hi = new HashMap<>();
                 List<String> ls = new ArrayList<>();
                 for (String key: getPlayerProgress().getKeys(false)) {
-                    hi.put(key, getPlayerProgress().getConfigurationSection(key).getInt("Completions", 0));
+                    hi.put(key, getPlayerProgress().getConfigurationSection(key)
+                           .getInt("Completions", 0));
                     ls.add(key);
                 }
                 Collections.sort(ls, (a, b) -> Integer.compare(hi.get(b), hi.get(a)));
                 int i = 0;
                 for (String key: ls) {
-                    sender.sendMessage("#" + (++i) + " " + hi.get(key) + " " + getPlayerProgress().getConfigurationSection(key).getString("Name", "N/A"));
+                    sender.sendMessage("#" + (++i) + " " + hi.get(key) + " "
+                                       + getPlayerProgress().getConfigurationSection(key)
+                                       .getString("Name", "N/A"));
                 }
-            }
             break;
+        }
         case "build": {
                 if (!(sender instanceof Player)) {
                     sender.sendMessage("Player expected.");
                     return true;
                 }
-                Player player = (Player)sender;
+                Player player = (Player) sender;
                 buildMaypole(player);
                 sender.sendMessage(player.getName() + " head added to Maypole.");
-            }
             return true;
+        }
         default:
             return false;
         }
@@ -241,7 +254,8 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             prog.set("HasBook", true);
             savePlayerProgress();
             player.sendMessage("Here, take this book.");
-            player.playSound(player.getEyeLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 0.5f);
+            player.playSound(player.getEyeLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST,
+                             1.0f, 0.5f);
         } else {
             StringBuilder sb = new StringBuilder(ChatColor.BLUE + "You still lack ");
             boolean comma = false;
@@ -259,19 +273,23 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             if (completions == 1) {
                 player.sendMessage("You have completed your collection once before.");
             } else if (completions > 1) {
-                player.sendMessage("You have completed your collection " + ChatColor.GREEN + completions + ChatColor.WHITE + " times.");
+                player.sendMessage("You have completed your collection " + ChatColor.GREEN
+                                   + completions + ChatColor.WHITE + " times.");
             }
             if (completions > 0) {
                 Map<String, Integer> hi = new HashMap<>();
                 List<String> ls = new ArrayList<>();
                 for (String key: getPlayerProgress().getKeys(false)) {
-                    hi.put(key, getPlayerProgress().getConfigurationSection(key).getInt("Completions", 0));
+                    hi.put(key, getPlayerProgress().getConfigurationSection(key)
+                           .getInt("Completions", 0));
                     ls.add(key);
                 }
                 Collections.sort(ls, (a, b) -> Integer.compare(hi.get(b), hi.get(a)));
                 for (int i = 0; i < 3 && i < ls.size(); i += 1) {
                     String key = ls.get(i);
-                    player.sendMessage("#" + (i + 1) + " " + ChatColor.GREEN + hi.get(key) + " " + ChatColor.WHITE + getPlayerProgress().getConfigurationSection(key).getString("Name", "N/A"));
+                    player.sendMessage("#" + (i + 1) + " " + ChatColor.GREEN + hi.get(key) + " "
+                                       + ChatColor.WHITE + getPlayerProgress()
+                                       .getConfigurationSection(key).getString("Name", "N/A"));
                 }
             }
         }
@@ -297,19 +315,21 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                            + ChatColor.GOLD + " Highscore"
                            + ChatColor.BLUE + " * * * ");
         for (String key: ls) {
-	    int score = hi.get(key);
-	    if (score == 0) break;
+            int score = hi.get(key);
+            if (score == 0) break;
             sender.sendMessage(ChatColor.GRAY + "#"
                                + ChatColor.BLUE + (++rank)
                                + ChatColor.GOLD + " " + score
-                               + ChatColor.BLUE + " " + getPlayerProgress().getConfigurationSection(key).getString("Name", "N/A"));
+                               + ChatColor.BLUE + " " + getPlayerProgress()
+                               .getConfigurationSection(key).getString("Name", "N/A"));
             if (rank >= 20) break;
         }
     }
 
     private YamlConfiguration getPlayerProgress() {
         if (playerProgress == null) {
-            playerProgress = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "player_progress.yml"));
+            playerProgress = YamlConfiguration
+                .loadConfiguration(new File(getDataFolder(), "player_progress.yml"));
         }
         return playerProgress;
     }
@@ -339,11 +359,12 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         if (progress.getBoolean(collectible.key, false)) return;
         int maxCompletions = 0;
         for (String key: getPlayerProgress().getKeys(false)) {
-            maxCompletions = Math.max(maxCompletions, getPlayerProgress().getConfigurationSection(key).getInt("Completions"));
+            maxCompletions = Math.max(maxCompletions, getPlayerProgress()
+                                      .getConfigurationSection(key).getInt("Completions"));
         }
         int completions = progress.getInt("Completions", 0);
         if (completions > 0) {
-            double chance = 1.0 / (double)(completions + 2);
+            double chance = 1.0 / (double) (completions + 2);
             if (completions > 3 && completions >= maxCompletions - 1) chance *= 0.3;
             if (random.nextDouble() > chance) return;
         }
@@ -352,7 +373,8 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         player.playSound(player.getEyeLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
         player.sendActionBar(ChatColor.GOLD + "You collect the " + collectible.nice + ".");
         player.sendMessage(ChatColor.GOLD + "You collect the " + collectible.nice + ".");
-        player.spawnParticle(Particle.FIREWORKS_SPARK, player.getEyeLocation(), 100, 2.0, 2.0, 2.0, 0.0);
+        player.spawnParticle(Particle.FIREWORKS_SPARK, player.getEyeLocation(), 100,
+                             2.0, 2.0, 2.0, 0.0);
         MagicMapPlugin.triggerRerender(player);
     }
 
@@ -361,7 +383,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         final Player player = event.getPlayer();
         final Block block = event.getBlock();
         if (!eventWorlds.contains(block.getWorld().getName())) return;
-        if (BukkitExploits.getInstance().isPlayerPlaced(block)) return;
+        if (Exploits.isPlayerPlaced(block)) return;
         switch (block.getType()) {
         case ORANGE_TULIP:
             unlockCollectible(player, Collectible.ORANGE_ONION);
@@ -411,9 +433,9 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             case SNOWY_TAIGA_MOUNTAINS:
             case GIANT_SPRUCE_TAIGA:
             case GIANT_SPRUCE_TAIGA_HILLS:
-	    case SNOWY_TUNDRA:
-	    case SNOWY_MOUNTAINS:
-	    case SNOWY_BEACH:
+            case SNOWY_TUNDRA:
+            case SNOWY_MOUNTAINS:
+            case SNOWY_BEACH:
                 unlockCollectible(player, Collectible.FROST_FLOWER);
             default: break;
             }
@@ -480,7 +502,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         final Player player = event.getPlayer();
         final Block block = event.getBlockClicked();
         if (!eventWorlds.contains(block.getWorld().getName())) return;
-        if (BukkitExploits.getInstance().isPlayerPlaced(block)) return;
+        if (Exploits.isPlayerPlaced(block)) return;
         switch (block.getType()) {
         case LAVA:
             if (block.getY() > 48
@@ -571,10 +593,10 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         if (!this.anyWinCommands.isEmpty()) {
             Object o = this.anyWinCommands.get(random.nextInt(this.anyWinCommands.size()));
             if (o instanceof String) {
-                serverCommand((String)o, player);
+                serverCommand((String) o, player);
             } else if (o instanceof List) {
-                for (Object p : (List)o) {
-                    serverCommand((String)p, player);
+                for (Object p : (List) o) {
+                    serverCommand((String) p, player);
                 }
             }
         }
@@ -609,18 +631,14 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             for (BlockFace face: skullFacings) {
                 Block skullBlock = poleBlock.getRelative(face);
                 if (skullBlock.getType() != Material.AIR) continue;
-                Directional directional = (Directional)Material.PLAYER_WALL_HEAD.createBlockData();
+                Directional directional = (Directional) Material.PLAYER_WALL_HEAD.createBlockData();
                 directional.setFacing(face);
                 skullBlock.setBlockData(directional);
-                Skull skullState = (Skull)(skullBlock.getState());
+                Skull skullState = (Skull) skullBlock.getState();
                 skullState.setOwner(player.getName());
                 skullState.setOwningPlayer(player);
+                skullState.setPlayerProfile(player.getPlayerProfile());
                 skullState.update();
-                new BukkitRunnable() {
-                    @Override public void run() {
-                        skullState.update();
-                    }
-                }.runTaskLater(this, 20L);
                 final Location blockLocation = skullBlock.getLocation().add(0.5, 0.5, 0.5);
                 final Location playerLocation = player.getEyeLocation();
                 new BukkitRunnable() {
@@ -629,9 +647,11 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                         i += 1;
                         if (i >= 100) cancel();
                         double p = random.nextDouble();
-                        Vector v = playerLocation.toVector().multiply(p).add(blockLocation.toVector().multiply(1.0 - p));
+                        Vector v = playerLocation.toVector().multiply(p)
+                            .add(blockLocation.toVector().multiply(1.0 - p));
                         Location loc = v.toLocation(playerLocation.getWorld(), 0f, 0f);
-                        playerLocation.getWorld().spawnParticle(Particle.SPELL_MOB, loc, 1, 0.5, 0.5, 0.5, -1f);
+                        playerLocation.getWorld().spawnParticle(Particle.SPELL_MOB, loc, 1,
+                                                                0.5, 0.5, 0.5, -1f);
                     }
                 }.runTaskTimer(this, 1, 1);
                 placed = true;
@@ -641,7 +661,14 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     }
 
     void giveBook(Player player) {
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "book.yml"));
+        Item item = player.getWorld().dropItem(player.getEyeLocation(), makeBook());
+        item.setOwner(player.getUniqueId());
+        item.setPickupDelay(0);
+    }
+
+    public ItemStack makeBook() {
+        YamlConfiguration config = YamlConfiguration
+            .loadConfiguration(new File(getDataFolder(), "book.yml"));
         List<Object> pages = new ArrayList<>();
         List<Object> page = new ArrayList<>();
         Map<String, Integer> anchors = new HashMap<>();
@@ -649,9 +676,9 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             switch (par) {
             case "page":
                 if (page.size() == 1) {
-                    pages.add(JSONValue.toJSONString(page.get(0)));
+                    pages.add(gson.toJson(page.get(0)));
                 } else {
-                    pages.add(JSONValue.toJSONString(page));
+                    pages.add(gson.toJson(page));
                 }
                 page = new ArrayList<>();
                 break;
@@ -702,17 +729,24 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             page.add(tocEntry);
             entries += 1;
             if (entries == 12) {
-                pages.add(0, JSONValue.toJSONString(page));
+                pages.add(0, gson.toJson(page));
                 page = new ArrayList<>();
             }
         }
-        pages.add(1, JSONValue.toJSONString(page));
+        pages.add(1, gson.toJson(page));
         Map<String, Object> book = new HashMap<>();
         book.put("generation", 3);
         book.put("author", "Council of May");
         book.put("title", "Building a Maypole");
         book.put("pages", pages);
-        String cmd = "give " + player.getName() + " minecraft:written_book" + JSONValue.toJSONString(book);
-        getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
+        ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
+        String json = gson.toJson(book);
+        try {
+            item = getServer().getUnsafe().modifyItemStack(item, json);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        ItemMarker.setId(item, BOOK_ID);
+        return item;
     }
 }
