@@ -643,7 +643,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                 }
             }
         }
-        player.playSound(player.getEyeLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0f, 1.0f);
+        player.playSound(player.getEyeLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 0.25f, 1.25f);
         player.sendMessage("You return a complete collection to the Maypole.");
         return true;
     }
