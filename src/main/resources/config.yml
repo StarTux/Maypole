@@ -9,3 +9,4 @@ AnyWinCommands:
   - give %player% emerald
 - - money grant %player% 100
   - tell player Have some money.
+Debug: true

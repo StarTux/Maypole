@@ -4,6 +4,7 @@ import com.cavetale.magicmap.MagicMapPlugin;
 import com.cavetale.magicmap.MagicMapPostRenderEvent;
 import com.cavetale.magicmap.MapCache;
 import com.cavetale.worldmarker.ItemMarker;
+import com.cavetale.worldmarker.MarkedItemUseEvent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.winthier.exploits.Exploits;
@@ -32,13 +33,19 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.MushroomCow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapPalette;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -58,6 +65,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     private final Random random = new Random(System.nanoTime());
     Gson gson = new GsonBuilder().disableHtmlEscaping().create();
     static final String BOOK_ID = "maypole:book";
+    boolean debug;
 
     enum Collectible {
         LUCID_LILY,
@@ -95,12 +103,11 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        reloadConfig();
         saveDefaultConfig();
-        saveResource("book.yml", false);
+        parseConfig();
+        saveResource("book.yml", debug);
         playerProgress = null;
         getServer().getPluginManager().registerEvents(this, this);
-        parseConfig();
         try {
             int a = 0;
             BufferedImage img = ImageIO.read(getResource("items.png"));
@@ -120,6 +127,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     }
 
     void parseConfig() {
+        reloadConfig();
         eventWorlds = getConfig().getStringList("EventWorlds");
         poleWorld = getConfig().getString("PoleWorld");
         poleCoords = getConfig().getIntegerList("PoleCoords");
@@ -127,6 +135,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             .map(a -> BlockFace.valueOf(a.toUpperCase())).collect(Collectors.toList());
         originalWinCommands = getConfig().getStringList("OriginalWinCommands");
         anyWinCommands = getConfig().getList("AnyWinCommands");
+        debug = getConfig().getBoolean("Debug");
     }
 
     @Override
@@ -354,7 +363,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         return result;
     }
 
-    void unlockCollectible(Player player, Collectible collectible) {
+    void unlockCollectible(Player player, Block block, Collectible collectible) {
         ConfigurationSection progress = getPlayerProgress(player);
         if (progress.getBoolean(collectible.key, false)) return;
         int maxCompletions = 0;
@@ -363,56 +372,51 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
                                       .getConfigurationSection(key).getInt("Completions"));
         }
         int completions = progress.getInt("Completions", 0);
-        if (completions > 0) {
-            double chance = 1.0 / (double) (completions + 2);
-            if (completions > 3 && completions >= maxCompletions - 1) chance *= 0.3;
-            if (random.nextDouble() > chance) return;
+        double chance = 1.0 / (double) (completions + 3);
+        if (completions > 3 && completions >= maxCompletions - 1) chance *= 0.3;
+        double roll = random.nextDouble();
+        Location loc = block.getLocation().add(0.5, 0.5, 0.5);
+        if (debug) {
+            getLogger().info("Unlock: " + player.getName()
+                             + " " + block.getWorld().getName()
+                             + ":" + block.getX() + "," + block.getY() + "," + block.getZ()
+                             + " (" + block.getType().name().toLowerCase() + ")"
+                             + " " + collectible.key
+                             + ": " + roll + "/" + chance);
+        }
+        if (roll > chance) {
+            player.spawnParticle(Particle.CRIT, loc, 32, 0.5, 0.5, 0.5, 0.0);
+            return;
         }
         progress.set(collectible.key, true);
         savePlayerProgress();
-        player.playSound(player.getEyeLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
         player.sendActionBar(ChatColor.GOLD + "You collect the " + collectible.nice + ".");
         player.sendMessage(ChatColor.GOLD + "You collect the " + collectible.nice + ".");
-        player.spawnParticle(Particle.FIREWORKS_SPARK, player.getEyeLocation(), 100,
-                             2.0, 2.0, 2.0, 0.0);
+        block.getWorld().playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 0.20f, 1.5f);
+        block.getWorld().spawnParticle(Particle.FIREWORKS_SPARK, loc, 50, 1.0, 1.0, 1.0, 0.0);
         MagicMapPlugin.triggerRerender(player);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockBreak(BlockBreakEvent event) {
         final Player player = event.getPlayer();
         final Block block = event.getBlock();
         if (!eventWorlds.contains(block.getWorld().getName())) return;
         if (Exploits.isPlayerPlaced(block)) return;
         switch (block.getType()) {
+        case SEAGRASS:
+            switch (block.getBiome()) {
+            case SWAMP:
+            case SWAMP_HILLS:
+                unlockCollectible(player, block, Collectible.LUCID_LILY);
+            default: break;
+            }
+            break;
         case ORANGE_TULIP:
-            unlockCollectible(player, Collectible.ORANGE_ONION);
-            break;
-        case LILY_PAD:
-            switch (block.getBiome()) {
-            case SWAMP:
-            case SWAMP_HILLS:
-                unlockCollectible(player, Collectible.LUCID_LILY);
-            default: break;
-            }
-            break;
-        case BROWN_MUSHROOM:
-            switch (block.getBiome()) {
-            case SWAMP:
-            case SWAMP_HILLS:
-                unlockCollectible(player, Collectible.MISTY_MOREL);
-            default: break;
-            }
-            break;
-        case RED_MUSHROOM:
-            switch (block.getBiome()) {
-            case NETHER:
-                unlockCollectible(player, Collectible.FIRE_AMANITA);
-            default: break;
-            }
+            unlockCollectible(player, block, Collectible.ORANGE_ONION);
             break;
         case ROSE_BUSH:
-            unlockCollectible(player, Collectible.RED_ROSE);
+            unlockCollectible(player, block, Collectible.RED_ROSE);
             break;
         case GRASS:
         case TALL_GRASS:
@@ -436,18 +440,20 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             case SNOWY_TUNDRA:
             case SNOWY_MOUNTAINS:
             case SNOWY_BEACH:
-                unlockCollectible(player, Collectible.FROST_FLOWER);
+                unlockCollectible(player, block, Collectible.FROST_FLOWER);
             default: break;
             }
             break;
         case FERN:
             switch (block.getBiome()) {
+            case BAMBOO_JUNGLE:
+            case BAMBOO_JUNGLE_HILLS:
             case JUNGLE:
             case JUNGLE_HILLS:
             case JUNGLE_EDGE:
             case MODIFIED_JUNGLE:
             case MODIFIED_JUNGLE_EDGE:
-                unlockCollectible(player, Collectible.PIPE_WEED);
+                unlockCollectible(player, block, Collectible.PIPE_WEED);
             default: break;
             }
             break;
@@ -456,44 +462,70 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             case DESERT:
             case DESERT_HILLS:
             case DESERT_LAKES:
-                unlockCollectible(player, Collectible.HEAT_ROOT);
+                unlockCollectible(player, block, Collectible.HEAT_ROOT);
             default: break;
             }
             break;
         case CACTUS:
-            unlockCollectible(player, Collectible.CACTUS_BLOSSOM);
-            break;
-        case PUMPKIN:
-            unlockCollectible(player, Collectible.KINGS_PUMPKIN);
-            break;
-        case SAND:
-            switch (block.getBiome()) {
-            case BEACH:
-            case SNOWY_BEACH:
-            case OCEAN:
-            case FROZEN_OCEAN:
-            case DEEP_OCEAN:
-            case WARM_OCEAN:
-            case LUKEWARM_OCEAN:
-            case COLD_OCEAN:
-            case DEEP_WARM_OCEAN:
-            case DEEP_LUKEWARM_OCEAN:
-            case DEEP_COLD_OCEAN:
-            case DEEP_FROZEN_OCEAN:
-                unlockCollectible(player, Collectible.CLAMSHELL);
-            default: break;
+            if (block.getRelative(0, -1, 0).getType() == Material.SAND) {
+                unlockCollectible(player, block, Collectible.CACTUS_BLOSSOM);
             }
             break;
-        case PACKED_ICE:
-            unlockCollectible(player, Collectible.FROZEN_AMBER);
+        case PUMPKIN:
+            unlockCollectible(player, block, Collectible.KINGS_PUMPKIN);
             break;
-        case SPRUCE_LEAVES:
-            unlockCollectible(player, Collectible.PINE_CONE);
+        case BRAIN_CORAL:
+        case BRAIN_CORAL_BLOCK:
+        case BUBBLE_CORAL:
+        case BUBBLE_CORAL_BLOCK:
+        case FIRE_CORAL:
+        case FIRE_CORAL_BLOCK:
+        case HORN_CORAL:
+        case HORN_CORAL_BLOCK:
+        case TUBE_CORAL:
+        case TUBE_CORAL_BLOCK:
+            unlockCollectible(player, block, Collectible.CLAMSHELL);
+            break;
+        case BLUE_ICE:
+            unlockCollectible(player, block, Collectible.FROZEN_AMBER);
+            break;
+        case SWEET_BERRY_BUSH:
+            unlockCollectible(player, block, Collectible.PINE_CONE);
             break;
         case MOSSY_COBBLESTONE:
-            unlockCollectible(player, Collectible.CLUMP_OF_MOSS);
+        case MOSSY_COBBLESTONE_SLAB:
+        case MOSSY_COBBLESTONE_STAIRS:
+        case MOSSY_COBBLESTONE_WALL:
+        case MOSSY_STONE_BRICKS:
+        case MOSSY_STONE_BRICK_SLAB:
+        case MOSSY_STONE_BRICK_STAIRS:
+        case MOSSY_STONE_BRICK_WALL:
+            unlockCollectible(player, block, Collectible.CLUMP_OF_MOSS);
             break;
         default: break;
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onPlayerShearEntity(PlayerShearEntityEvent event) {
+        Player player = event.getPlayer();
+        if (!eventWorlds.contains(player.getWorld().getName())) return;
+        if (event.getEntity() instanceof MushroomCow) {
+            MushroomCow cow = (MushroomCow) event.getEntity();
+            if (cow.getVariant() != MushroomCow.Variant.BROWN) return;
+            unlockCollectible(player, cow.getEyeLocation().getBlock(), Collectible.MISTY_MOREL);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onEntityDeath(EntityDeathEvent event) {
+        LivingEntity entity = event.getEntity();
+        if (!eventWorlds.contains(entity.getWorld().getName())) return;
+        if (entity.getType() == EntityType.PIG_ZOMBIE) {
+            if (entity.getWorld().getEnvironment() != World.Environment.NETHER) return;
+            Player killer = entity.getKiller();
+            if (killer == null) return;
+            unlockCollectible(killer, entity.getEyeLocation().getBlock(), Collectible.FIRE_AMANITA);
         }
     }
 
@@ -507,7 +539,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         case LAVA:
             if (block.getY() > 48
                 && block.getRelative(0, 1, 0).getLightFromSky() == 15) {
-                unlockCollectible(player, Collectible.SPARK_SEED);
+                unlockCollectible(player, block, Collectible.SPARK_SEED);
             }
             break;
         case WATER:
@@ -515,7 +547,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             case DESERT:
             case DESERT_HILLS:
             case DESERT_LAKES:
-                unlockCollectible(player, Collectible.OASIS_WATER);
+                unlockCollectible(player, block, Collectible.OASIS_WATER);
                 break;
             default: break;
             }
@@ -530,6 +562,17 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         Block poleBlock = getPoleBlock();
         if (poleBlock.equals(event.getClickedBlock())) {
             interact(event.getPlayer());
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onMarkedItemUse(MarkedItemUseEvent event) {
+        if (BOOK_ID.equals(event.getId())) {
+            if (event.hasEntity()) return;
+            if (!event.getClick().isRightClick()) return;
+            System.out.println("OPEN");
+            event.setCancelled(true);
+            event.getPlayer().openBook(makeBook());
         }
     }
 
@@ -661,12 +704,16 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     }
 
     void giveBook(Player player) {
-        Item item = player.getWorld().dropItem(player.getEyeLocation(), makeBook());
-        item.setOwner(player.getUniqueId());
-        item.setPickupDelay(0);
+        // String cmd = "give " + player.getName() + " minecraft:written_book"
+        //     + getBookJson();
+        // getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
+        ItemStack item = makeBook();
+        Item drop = player.getWorld().dropItem(player.getEyeLocation(), item);
+        drop.setOwner(player.getUniqueId());
+        drop.setPickupDelay(0);
     }
 
-    public ItemStack makeBook() {
+    public String getBookJson() {
         YamlConfiguration config = YamlConfiguration
             .loadConfiguration(new File(getDataFolder(), "book.yml"));
         List<Object> pages = new ArrayList<>();
@@ -739,8 +786,13 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         book.put("author", "Council of May");
         book.put("title", "Building a Maypole");
         book.put("pages", pages);
-        ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
-        String json = gson.toJson(book);
+        book.put("resolved", 1);
+        return gson.toJson(book);
+    }
+
+    public ItemStack makeBook() {
+        ItemStack item = new ItemStack(Material.WRITTEN_BOOK).ensureServerConversions();
+        String json = getBookJson();
         try {
             item = getServer().getUnsafe().modifyItemStack(item, json);
         } catch (Exception e) {
