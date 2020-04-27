@@ -570,7 +570,6 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         if (BOOK_ID.equals(event.getId())) {
             if (event.hasEntity()) return;
             if (!event.getClick().isRightClick()) return;
-            System.out.println("OPEN");
             event.setCancelled(true);
             event.getPlayer().openBook(makeBook());
         }
@@ -756,7 +755,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         for (Collectible collectible: Collectible.values()) {
             Integer pageNo = anchors.get(collectible.key);
             if (pageNo == null) {
-                System.err.println("No anchor for " + collectible);
+                getLogger().warning("No anchor for " + collectible);
                 continue;
             }
             pageNo += 3;
