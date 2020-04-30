@@ -397,7 +397,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         MagicMapPlugin.triggerRerender(player);
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onBlockBreak(BlockBreakEvent event) {
         final Player player = event.getPlayer();
         final Block block = event.getBlock();
@@ -529,7 +529,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority  = EventPriority.HIGHEST)
     public void onPlayerBucketFill(PlayerBucketFillEvent event) {
         final Player player = event.getPlayer();
         final Block block = event.getBlockClicked();
