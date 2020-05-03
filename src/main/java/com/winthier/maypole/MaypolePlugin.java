@@ -66,6 +66,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     Gson gson = new GsonBuilder().disableHtmlEscaping().create();
     static final String BOOK_ID = "maypole:book";
     boolean debug;
+    boolean enabled;
 
     enum Collectible {
         LUCID_LILY,
@@ -136,6 +137,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         originalWinCommands = getConfig().getStringList("OriginalWinCommands");
         anyWinCommands = getConfig().getList("AnyWinCommands");
         debug = getConfig().getBoolean("Debug");
+        enabled = getConfig().getBoolean("Enabled");
     }
 
     @Override
@@ -256,9 +258,9 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     }
 
     void interact(Player player) {
-        if (playerReturns(player)) return;
+        if (enabled && playerReturns(player)) return;
         ConfigurationSection prog = getPlayerProgress(player);
-        if (!prog.getBoolean("HasBook")) {
+        if (enabled && !prog.getBoolean("HasBook")) {
             giveBook(player);
             prog.set("HasBook", true);
             savePlayerProgress();
@@ -266,18 +268,20 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
             player.playSound(player.getEyeLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST,
                              1.0f, 0.5f);
         } else {
-            StringBuilder sb = new StringBuilder(ChatColor.BLUE + "You still lack ");
-            boolean comma = false;
-            for (Collectible collectible: Collectible.values()) {
-                if (!prog.getBoolean(collectible.key, false)) {
-                    if (comma) sb.append(ChatColor.GRAY + ", ");
-                    sb.append(ChatColor.GOLD + collectible.nice);
-                    comma = true;
+            if (enabled) {
+                StringBuilder sb = new StringBuilder(ChatColor.BLUE + "You still lack ");
+                boolean comma = false;
+                for (Collectible collectible: Collectible.values()) {
+                    if (!prog.getBoolean(collectible.key, false)) {
+                        if (comma) sb.append(ChatColor.GRAY + ", ");
+                        sb.append(ChatColor.GOLD + collectible.nice);
+                        comma = true;
+                    }
                 }
+                sb.append(".");
+                player.sendMessage(sb.toString());
+                player.playSound(player.getEyeLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1.0f, 0.6f);
             }
-            sb.append(".");
-            player.sendMessage(sb.toString());
-            player.playSound(player.getEyeLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1.0f, 0.6f);
             int completions = prog.getInt("Completions", 0);
             if (completions == 1) {
                 player.sendMessage("You have completed your collection once before.");
@@ -399,6 +403,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onBlockBreak(BlockBreakEvent event) {
+        if (!enabled) return;
         final Player player = event.getPlayer();
         final Block block = event.getBlock();
         if (!eventWorlds.contains(block.getWorld().getName())) return;
@@ -508,6 +513,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerShearEntity(PlayerShearEntityEvent event) {
+        if (!enabled) return;
         Player player = event.getPlayer();
         if (!eventWorlds.contains(player.getWorld().getName())) return;
         if (event.getEntity() instanceof MushroomCow) {
@@ -519,6 +525,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
+        if (!enabled) return;
         LivingEntity entity = event.getEntity();
         if (!eventWorlds.contains(entity.getWorld().getName())) return;
         if (entity.getType() == EntityType.PIG_ZOMBIE) {
@@ -531,6 +538,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
 
     @EventHandler(priority  = EventPriority.HIGHEST)
     public void onPlayerBucketFill(PlayerBucketFillEvent event) {
+        if (!enabled) return;
         final Player player = event.getPlayer();
         final Block block = event.getBlockClicked();
         if (!eventWorlds.contains(block.getWorld().getName())) return;
@@ -558,6 +566,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!enabled) return;
         if (!event.hasBlock()) return;
         Block poleBlock = getPoleBlock();
         if (poleBlock.equals(event.getClickedBlock())) {
@@ -577,6 +586,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onMapRender(MagicMapPostRenderEvent event) {
+        if (!enabled) return;
         MapCache map = event.getMapCache();
         final int off = 96;
         for (Collectible collectible : Collectible.values()) {
