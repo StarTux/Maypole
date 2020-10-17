@@ -4,7 +4,6 @@ import com.cavetale.magicmap.MagicMapPlugin;
 import com.cavetale.magicmap.MagicMapPostRenderEvent;
 import com.cavetale.magicmap.MapCache;
 import com.cavetale.worldmarker.ItemMarker;
-import com.cavetale.worldmarker.MarkedItemUseEvent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.winthier.exploits.Exploits;
@@ -528,7 +527,7 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
         if (!enabled) return;
         LivingEntity entity = event.getEntity();
         if (!eventWorlds.contains(entity.getWorld().getName())) return;
-        if (entity.getType() == EntityType.PIG_ZOMBIE) {
+        if (entity.getType() == EntityType.PIGLIN) {
             if (entity.getWorld().getEnvironment() != World.Environment.NETHER) return;
             Player killer = entity.getKiller();
             if (killer == null) return;
@@ -567,20 +566,19 @@ public final class MaypolePlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!enabled) return;
-        if (!event.hasBlock()) return;
-        Block poleBlock = getPoleBlock();
-        if (poleBlock.equals(event.getClickedBlock())) {
-            interact(event.getPlayer());
+        if (event.hasBlock()) {
+            Block poleBlock = getPoleBlock();
+            if (poleBlock.equals(event.getClickedBlock())) {
+                interact(event.getPlayer());
+                event.setCancelled(true);
+                return;
+            }
         }
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onMarkedItemUse(MarkedItemUseEvent event) {
-        if (BOOK_ID.equals(event.getId())) {
-            if (event.hasEntity()) return;
-            if (!event.getClick().isRightClick()) return;
+        ItemStack item = event.getItem();
+        if (item != null && ItemMarker.hasId(item, BOOK_ID)) {
             event.setCancelled(true);
             event.getPlayer().openBook(makeBook());
+            return;
         }
     }
 
