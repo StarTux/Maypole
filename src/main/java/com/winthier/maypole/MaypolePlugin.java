@@ -3,7 +3,7 @@ package com.winthier.maypole;
 import com.cavetale.magicmap.MagicMapPlugin;
 import com.cavetale.magicmap.MagicMapPostRenderEvent;
 import com.cavetale.magicmap.MapCache;
-import com.cavetale.worldmarker.ItemMarker;
+import com.cavetale.worldmarker.item.ItemMarker;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.winthier.exploits.Exploits;
