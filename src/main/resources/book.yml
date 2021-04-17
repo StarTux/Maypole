@@ -1,171 +1,115 @@
-pages:
-- anchor introduction
+introduction:
 - |-
-  &nIntroduction
-
   Spring has sprung, my friends, and this month, it is finally time to celebrate the obligatory May Festival.
-- page
-- Aside from music, dancing, and free beer, by far the most important tradition thereof is the construction of the Maypole. For this task however, we require the cooperation of every able-bodied man, woman, and child, in the world of Cavetale.
-- page
-- The following is a list of the required ingredients for its construction. Some are mere decoration, others yield hidden powers known only to our top alchemists. Gather one of each and return them to the Maypole Steward.
-- page
 - |-
-  You can easily track your progress on your Magic Map.
-- page
+  Aside from music, dancing, and free beer, by far the most important tradition thereof is the construction of the Maypole. For this task however, we require the cooperation of every able-bodied man, woman, and child, in the world of Cavetale.
+- |-
+  The following is a list of the required ingredients for its construction. Some are mere decoration, others yield hidden powers known only to our top alchemists. Gather one of each and return them to the Maypole Steward.
 - |-
   Keep in mind that all materials must be gathered in the Home or Mining worlds and have to be natural.
 
   Thank you in advance and good luck,
 
     &oThe Council of May
-- page
 
-- anchor lucid_lily
+lucid_lily:
 - |-
-  &nLucid Lily
-  
   Most commonly associated with witches who grow them in the ponds around their huts. Nobody knows what draws them to this flower, but I bet it's the olfactory appeal, however... repulsive you and I may perceive it.
-- page
-- Its potential for an effective deodorant must be enormous. However, we only care about its visual appeal, which is just perfect for the Maypole! This fragile blossom of should bloom around this time of year in moist climates.
-- page
-- If someone were to inspect some seagrass in the swamplands, they would find a specimen in no time, guaranteed!
-- page
-
-- anchor pine_cone
 - |-
-  &nPine Cone
+  Its potential for an effective deodorant must be enormous. However, we only care about its visual appeal, which is just perfect for the Maypole! This fragile blossom of should bloom around this time of year in moist climates.
+- |-
+  If someone were to inspect some seagrass in the swamplands, they would find a specimen in no time, guaranteed!
 
+pine_cone:
+- |-
   This funny looking cone falls of the fir tree to carry its seed far away. Eventually they get caught in the undergrowth. Some people love to dry them and build small figurines with them. You may see where this is going.
-- page
-- Only where to find a dried specimen at this time of the year is the question. You should get lucky if you shake or break some of those sweet berry bushes.
-- page
-
-- anchor orange_onion
 - |-
-  &nOrange Onion
+  Only where to find a dried specimen at this time of the year is the question. You should get lucky if you shake or break some of those sweet berry bushes.
 
+orange_onion:
+- |-
   There are not many things in the world that can bring me to tears. Cut onions surely are one of them, and the orange kind is no exception. What makes this one so special is that it grows the magnificent orange tulip.
-- page
-- So one of those is bound to yield the onion, right?
-- page
-
-- anchor misty_morel
 - |-
-  &nMisty Morel
+  So one of those is bound to yield the onion, right?
 
+misty_morel:
+- |-
   Large crowds comb through the mycel every year to find this delicacy. They are usually easy to find in mushroom biomes. However, there is one caveat: The one we are looking grows on brown mushroom cows.
-- page
-- It looks just like any other brown mooshroom you will find, but trust me. Once you shear it and sink your teeth into one of these, you will be spoiled forever! We promise to save as many as possible for the Maypole.
-- page
-- They say that this time of the year these cows hide deep down in the caves under swamps. I suggest that you shear them while they are caught in a slime block.
-- page
-
-- anchor red_rose
 - |-
-  &nRed Rose
+  It looks just like any other brown mooshroom you will find, but trust me. Once you shear it and sink your teeth into one of these, you will be spoiled forever! We promise to save as many as possible for the Maypole.
+- |-
+  They say that this time of the year these cows hide deep down in the caves under swamps. I suggest that you shear them while they are caught in a slime block.
 
+red_rose:
+- |-
   It is a common misconception that they removed the red rose from the game in favor of the common poppy. Needless to say that one cannot have a rose bush without roses.
-- page
-- Plowing through enough of them should allow you to come up with a red rose in a matter of minutes.
-- page
-
-- anchor frost_flower
 - |-
-  &nFrost Flower
+  Plowing through enough of them should allow you to come up with a red rose in a matter of minutes.
 
-  Oh boy, finally we are getting to the good stuff. The frost flower is incredibly tricky to cultivate in your garden as it requires devilishly low temperatures to blossom. 
-- page
-- Even the slightest warm breeze could ruin months of care. However, you only need to take care of the easy part. Find its seeds in the taller grass of any snowy biome, and you're good to go.
-- page
-
-- anchor heat_root
+frost_flower:
 - |-
-  &nHeat Root
+  Oh boy, finally we are getting to the good stuff. The frost flower is incredibly tricky to cultivate in your garden as it requires devilishly low temperatures to blossom.
+- |-
+  Even the slightest warm breeze could ruin months of care. However, you only need to take care of the easy part. Find its seeds in the taller grass of any snowy biome, and you're good to go.
 
+heat_root:
+- |-
   Out of the frying pan, into the fire! This subterranean growth is searing to the touch and should only be harvested while wearing gloves.
-- page
-- The whole plant can usually be seen all over the desert, but now that spring is here, only the roots are still alive.
-- page
-- Tear a couple of dead bushes out of the desert floor, and one is bound to surface. Carrying of burn ointment is strongly advised.
-- page
-
-- anchor cactus_blossom
 - |-
-  &nCactus Blossom
+  The whole plant can usually be seen all over the desert, but now that spring is here, only the roots are still alive.
+- |-
+  Tear a couple of dead bushes out of the desert floor, and one is bound to surface. Carrying of burn ointment is strongly advised.
 
+cactus_blossom:
+- |-
   If it seems at this point that we are sending you out just to get your hands burned and prickled, you are mistaken. Having said that, be careful when you break those cacti.
-- page
-- In order to find a blossom that's intact, you will have to check out more than one. I hope I don't need to remind you that pulling cactus spines out of your finger is way more painful than getting them in there.
-- page
-
-- anchor pipe_weed
 - |-
-  &nPipe Weed
+  In order to find a blossom that's intact, you will have to check out more than one. I hope I don't need to remind you that pulling cactus spines out of your finger is way more painful than getting them in there.
 
+pipe_weed:
+- |-
   Oh, the blissful nights I spent in front of a hot chimney, thanks to Old Toby! I promise you that I will not smoke most of it. It's important for the Maypole festivities. It grows between the huge jungle trees.
-- page
-- Just keep your eye out for a fern looking plant. Hurry up, please, as my personal stash is almost empty...
-- page
-
-- anchor kings_pumpkin
 - |-
-  &nKing's Pumpkin
+  Just keep your eye out for a fern looking plant. Hurry up, please, as my personal stash is almost empty...
 
+kings_pumpkin:
+- |-
   There is a special kind of distinguished pumpkin, identifiable by it's crown-shaped leaves on top, hence the name. You will have to inspect a couple of pumpkins to find one. So make sure not to walk past a pumpkin patch if you come across one.
-- page
 
-- anchor spark_seed
+spark_seed:
 - |-
-  &nSpark Seed
-
   Out of the frying pan, into the... I made that joke already, didn't I? Anyway, this seed is equally hot, if not moreso than the Heat Root (see above). Getting your hands dirty (or burned) is something you may not be able to avoid, this time around...
-- page
-- So this seed. It only survives at the hottest places on earth, in direct sunlight. The most surefire way to find them (no pun intended) is to find a pool of surface lava.
-- page
-- Load some of it into a bucket and inspect it, carefully. You will know it when you see one. Try not to burn your eyebrows. Trust me, it takes forever to grow them back, not to mention the relentless ridicule from co-workers...
-- page
-
-- anchor oasis_water
 - |-
-  &nOasis Water
+  So this seed. It only survives at the hottest places on earth, in direct sunlight. The most surefire way to find them (no pun intended) is to find a pool of surface lava.
+- |-
+  Load some of it into a bucket and inspect it, carefully. You will know it when you see one. Try not to burn your eyebrows. Trust me, it takes forever to grow them back, not to mention the relentless ridicule from co-workers...
 
+oasis_water:
+- |-
   Time for a break! Well actually, traveling to the desert could be argued to be a little less than pleasant... Anyway, the Oasis Water can only be found there, in natural water sources on the surface!
-- page
-- We need that water to keep the more delicate exhibits moist, and it doesn't stay fresh for very long. so someone will have to go and fetch some.
-- page
-
-- anchor clamshell
 - |-
-  &nClamshell
+  We need that water to keep the more delicate exhibits moist, and it doesn't stay fresh for very long. so someone will have to go and fetch some.
 
+clamshell:
+- |-
   Susie sells seashells by the seashore. These clams are the remains of shellfish and once they're abandoned, they sink to the ground. There, the only place protected from various colorful predators are coral reefs.
-- page
-- Hammer on those for a bit and you will strike gold! Keep in mind that they have to be alive.
-- page
-
-- anchor frozen_amber
 - |-
-  &nFrozen Amber
+  Hammer on those for a bit and you will strike gold! Keep in mind that they have to be alive.
 
+frozen_amber:
+- |-
   You may have heard that mosquitoes sometimes get frozen in Amber, to be conserved for millions of years. We are taking you one step further, by finding amber that's trapped in the blue perma-frost of an iceberg.
-- page
-- There's simply no better way to conserve prehistoric organic matter. Try mining some blue ice until you find one of these gems.
-- page
-
-- anchor clump_of_moss
 - |-
-  &nClump of moss
+  There's simply no better way to conserve prehistoric organic matter. Try mining some blue ice until you find one of these gems.
 
+clump_of_moss:
+- |-
   Moss loves dark and moist spaces, so the woods are bound to be lousy with them. Try to scrape some off of mossy cobblestone. A handful should be enough for now.
-- page
 
-- anchor fire_amanita
+fire_amanita:
 - |-
-  &nFire Amanita
-
   Out of the frying pa-... never mind. So this fiery fungus grows in the depths of the Nether. This is by far the most dangerous place we are sending you to, so do be careful. The Fire Amanita is the favorite food of the common piglin.
-- page
-- Nobody knows how they locate them, it's their trade secret. Some say they can smell it from 128 blocks distance while others claim they grow on them. It is conceivable that this is merely a figure of speech, however.
-- page
-- I'm afraid they're not going to be part with it willingly, so if they refuse your gold, I see only one other option. The mighty Maypole is certainly worth this selfless sacrifice!
-- page
+- |-
+  Nobody knows how they locate them, it's their trade secret. Some say they can smell it from 128 blocks distance while others claim they grow on them. It is conceivable that this is merely a figure of speech, however.
+- |-
+  I'm afraid they're not going to be part with it willingly, so if they refuse your gold, I see only one other option. The mighty Maypole is certainly worth this selfless sacrifice!

@@ -7,7 +7,7 @@ description: Maypole Event
 author: StarTux
 api-version: 1.13
 
-depend: [Exploits, MagicMap, WorldMarker]
+depend: [Exploits, WorldMarker, Mytems]
 
 commands:
   maypole:

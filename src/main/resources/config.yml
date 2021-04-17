@@ -3,7 +3,7 @@ PoleWorld: spawn
 PoleCoords: [ 2100, 75, 943 ]
 SkullFacings: [ WEST, NORTH, SOUTH, EAST ]
 OriginalWinCommands:
-- titles unlock %player% Maypole
+- titles unlockset %player% Maypole
 AnyWinCommands:
 - - give %player% diamond
   - give %player% emerald
