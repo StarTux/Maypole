@@ -201,7 +201,8 @@ public final class EventListener implements Listener {
         ItemStack item = event.getItem();
         if (item != null && ItemMarker.hasId(item, MaypolePlugin.BOOK_ID)) {
             event.setCancelled(true);
-            event.getPlayer().openBook(plugin.maypoleBook.makeBook());
+            Player player = event.getPlayer();
+            player.openBook(plugin.maypoleBook.makeBook(player));
             return;
         }
     }

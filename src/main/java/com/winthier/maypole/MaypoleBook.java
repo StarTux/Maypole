@@ -9,21 +9,28 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
 @RequiredArgsConstructor
 public final class MaypoleBook {
     private final MaypolePlugin plugin;
-    private ItemStack prototype;
+    List<Component> introduction;
+    Map<Collectible, List<Component>> collectiblePages;
+    Map<Collectible, Integer> pageNumbers = new EnumMap<>(Collectible.class);
+    List<Component> content;
+    final int tocOffset = 3;
 
     private ConfigurationSection loadConfiguration() {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "book.yml"));
@@ -48,66 +55,117 @@ public final class MaypoleBook {
 
     public void enable() {
         ConfigurationSection config = loadConfiguration();
-        List<Component> introduction = config2componentList(config.getList("introduction"));
-        Map<Collectible, List<Component>> collectiblePages = new EnumMap<>(Collectible.class);
+        introduction = config2componentList(config.getList("introduction"));
+        collectiblePages = new EnumMap<>(Collectible.class);
+        content = new ArrayList<>();
+        content.addAll(introduction);
         for (Collectible collectible : Collectible.values()) {
             collectiblePages.put(collectible, config2componentList(config.getList(collectible.key)));
-        }
-        List<Component> tocs = new ArrayList<>();
-        List<Component> content = new ArrayList<>();
-        int tocOffset = 3;
-        Component toc = Component.empty();
-        int targetPage = tocOffset + content.size();
-        content.addAll(introduction);
-        toc = toc.append(Component.text("Table of Contents\n\n"));
-        toc = toc.append(Component.empty()
-                         .append(Component.text(targetPage + " ").color(NamedTextColor.DARK_GRAY).decorate(TextDecoration.ITALIC))
-                         .append(Component.text("Introduction\n").color(NamedTextColor.DARK_BLUE))
-                         .clickEvent(ClickEvent.changePage(targetPage))
-                         .hoverEvent(HoverEvent.showText(Component.text("Jump to page " + targetPage))));
-        int linum = 3;
-        for (Collectible collectible: Collectible.values()) {
-            targetPage = tocOffset + content.size();
+            int targetPage = tocOffset + content.size();
+            pageNumbers.put(collectible, targetPage);
             List<Component> thePages = collectiblePages.get(collectible);
-            thePages.set(0, Component.empty()
-                         .append(Component.empty()
+            thePages.set(0, Component.text()
+                         .append(Component.text()
                                  .append(collectible.mytems.component)
-                                 .append(Component.text(" " + collectible.nice + "\n").color(NamedTextColor.DARK_BLUE).decorate(TextDecoration.BOLD))
+                                 .append(Component.text(" " + collectible.nice + "\n", NamedTextColor.DARK_BLUE, TextDecoration.BOLD))
                                  .clickEvent(ClickEvent.changePage(1))
-                                 .hoverEvent(HoverEvent.showText(Component.text("Return to table of contents"))))
-                         .append(thePages.get(0)));
+                                 .hoverEvent(HoverEvent.showText(Component.text("Return to table of contents")))
+                                 .build())
+                         .append(thePages.get(0))
+                         .build());
             content.addAll(thePages);
-            toc = toc.append(Component.empty()
-                             .append(Component.text(targetPage + " ").color(NamedTextColor.DARK_GRAY).decorate(TextDecoration.ITALIC))
-                             .append(collectible.mytems.component)
-                             .append(Component.text(" " + collectible.nice + "\n").color(NamedTextColor.DARK_BLUE))
-                             .clickEvent(ClickEvent.changePage(targetPage))
-                             .hoverEvent(HoverEvent.showText(Component.text("Jump to page " + targetPage))));
-            linum += 1;
-            if (linum >= 14) {
-                tocs.add(toc);
-                toc = Component.empty();
-                linum = 0;
+        }
+    }
+
+    private static String fmt(int i) {
+        return i < 10 ? "0" + i : "" + i;
+    }
+
+    public ItemStack makeBook(Player player) {
+        List<Component> tocs = new ArrayList<>();
+        TextComponent.Builder toc = Component.text();
+        toc.append(Component.text("Table of Contents", NamedTextColor.DARK_BLUE, TextDecoration.BOLD));
+        toc.append(Component.newline());
+        toc.append(Component.newline());
+        Collectible[] collectibles = Collectible.values();
+        List<Component> listLine1 = new ArrayList<>(8);
+        List<Component> listLine2 = new ArrayList<>(8);
+        int count = 0;
+        for (int i = 0; i < collectibles.length; i += 1) {
+            Collectible collectible = collectibles[i];
+            boolean has = plugin.hasCollectible(player, collectible);
+            if (has) count += 1;
+            Component icon = has
+                ? (collectible.mytems.component
+                   .hoverEvent(HoverEvent.showText(Component.text()
+                                                   .append(Component.text(collectible.nice, NamedTextColor.BLUE))
+                                                   .append(Component.newline())
+                                                   .append(Component.text("Collected!", NamedTextColor.BLUE)))))
+                   : (collectible.mytems.component.color(TextColor.color(0x202020))
+                      .hoverEvent(HoverEvent.showText(Component.text()
+                                                      .append(Component.text(collectible.nice, NamedTextColor.GRAY))
+                                                      .append(Component.newline())
+                                                      .append(Component.text("Not yet collected!", NamedTextColor.DARK_GRAY)))));
+            if (i < 8) {
+                listLine1.add(icon);
+            } else {
+                listLine2.add(icon);
             }
         }
-        tocs.add(toc);
+        toc.append(Component.space());
+        toc.append(Component.join(Component.space(), listLine1));
+        toc.append(Component.newline());
+        toc.append(Component.space());
+        toc.append(Component.join(Component.space(), listLine2));
+        toc.append(Component.newline());
+        toc.append(Component.text("Collected: ", NamedTextColor.DARK_GRAY))
+            .append(Component.text(count + "/" + collectibles.length, NamedTextColor.DARK_BLUE));
+        toc.append(Component.newline());
+        toc.append(Component.text("Completions: ", NamedTextColor.DARK_GRAY))
+            .append(Component.text(plugin.getCompletions(player), NamedTextColor.DARK_BLUE));
+        toc.append(Component.newline());
+        toc.append(Component.newline());
+        int targetPage = tocOffset;
+        toc.append(Component.text()
+                   .append(Component.text(fmt(targetPage) + " ").color(NamedTextColor.DARK_GRAY).decorate(TextDecoration.ITALIC))
+                   .append(Component.text("Introduction\n", NamedTextColor.DARK_BLUE))
+                   .clickEvent(ClickEvent.changePage(targetPage))
+                   .hoverEvent(HoverEvent.showText(Component.text("Jump to page " + fmt(targetPage))))
+                   .build());
+        for (int i = 0; i < collectibles.length; i += 1) {
+            Collectible collectible = collectibles[i];
+            Component icon = collectible.mytems.component;
+            targetPage = pageNumbers.get(collectible);
+            toc.append(Component.text()
+                       .append(Component.text(fmt(targetPage) + " ").color(NamedTextColor.DARK_GRAY).decorate(TextDecoration.ITALIC))
+                       .append(icon)
+                       .append(Component.text(" " + collectible.nice + "\n", NamedTextColor.DARK_BLUE))
+                       .clickEvent(ClickEvent.changePage(targetPage))
+                       .hoverEvent(HoverEvent.showText(Component.text("Jump to page " + fmt(targetPage))))
+                       .build());
+            if (i == 4) {
+                tocs.add(toc.build());
+                toc = Component.text();
+                toc.append(Component.text("Table of Contents", NamedTextColor.DARK_BLUE, TextDecoration.BOLD));
+                toc.append(Component.newline());
+                toc.append(Component.newline());
+            }
+        }
+        tocs.add(toc.build());
         if (tocs.size() + 1 != tocOffset) {
             throw new IllegalStateException("tocOffset = " + tocOffset + " != " + (tocs.size() + 1));
         }
         List<Component> pages = new ArrayList<>(tocs.size() + content.size());
         pages.addAll(tocs);
         pages.addAll(content);
-        prototype = new ItemStack(Material.WRITTEN_BOOK);
-        BookMeta meta = (BookMeta) prototype.getItemMeta();
+        ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
+        BookMeta meta = (BookMeta) item.getItemMeta();
         meta.setGeneration(BookMeta.Generation.ORIGINAL);
         meta.author(Component.text("Council of May"));
         meta.title(Component.text("Building a Maypole"));
         meta.pages(pages);
         ItemMarker.setId(meta, MaypolePlugin.BOOK_ID);
-        prototype.setItemMeta(meta);
-    }
-
-    public ItemStack makeBook() {
-        return prototype.clone();
+        item.setItemMeta(meta);
+        return item;
     }
 }

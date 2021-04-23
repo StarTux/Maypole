@@ -93,17 +93,7 @@ public final class MaypolePlugin extends JavaPlugin {
             }
         } else {
             if (enabled) {
-                StringBuilder sb = new StringBuilder(ChatColor.BLUE + "You still lack ");
-                boolean comma = false;
-                for (Collectible collectible: Collectible.values()) {
-                    if (!prog.getBoolean(collectible.key, false)) {
-                        if (comma) sb.append(ChatColor.GRAY + ", ");
-                        sb.append(ChatColor.GOLD + collectible.nice);
-                        comma = true;
-                    }
-                }
-                sb.append(".");
-                player.sendMessage(sb.toString());
+                player.openBook(maypoleBook.makeBook(player));
                 player.playSound(player.getEyeLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1.0f, 0.6f);
             }
             int completions = prog.getInt("Completions", 0);
@@ -158,6 +148,16 @@ public final class MaypolePlugin extends JavaPlugin {
             result.set("Completions", 0);
         }
         return result;
+    }
+
+    public boolean hasCollectible(Player player, Collectible collectible) {
+        ConfigurationSection progress = getPlayerProgress(player);
+        return progress.getBoolean(collectible.key, false);
+    }
+
+    public int getCompletions(Player player) {
+        ConfigurationSection progress = getPlayerProgress(player);
+        return progress.getInt("Completions", 0);
     }
 
     void unlockCollectible(Player player, Block block, Collectible collectible) {
@@ -260,9 +260,9 @@ public final class MaypolePlugin extends JavaPlugin {
             poleBlock = poleBlock.getRelative(0, 1, 0);
             if (poleBlock.getType() == Material.AIR) {
                 if ((poleBlock.getY() & 1) == 0) {
-                    poleBlock.setType(Material.WHITE_CONCRETE);
+                    poleBlock.setType(Material.STRIPPED_SPRUCE_LOG);
                 } else {
-                    poleBlock.setType(Material.BLUE_CONCRETE);
+                    poleBlock.setType(Material.SPRUCE_LOG);
                 }
             }
             for (BlockFace face: skullFacings) {
@@ -298,7 +298,7 @@ public final class MaypolePlugin extends JavaPlugin {
     }
 
     protected boolean giveBook(Player player) {
-        ItemStack book = maypoleBook.makeBook();
+        ItemStack book = maypoleBook.makeBook(player);
         return player.getInventory().addItem(book).isEmpty();
     }
 }
