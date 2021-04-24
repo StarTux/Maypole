@@ -42,7 +42,7 @@ public final class MaypolePlugin extends JavaPlugin {
     protected List<BlockFace> skullFacings;
     protected List<String> originalWinCommands;
     protected List<?> anyWinCommands;
-    protected final Random random = new Random(System.nanoTime());
+    protected final Random random = new Random();
     protected boolean debug;
     protected boolean enabled;
     protected MaypoleBook maypoleBook = new MaypoleBook(this);
@@ -226,14 +226,18 @@ public final class MaypolePlugin extends JavaPlugin {
             for (String cmd: originalWinCommands) {
                 serverCommand(cmd, player);
             }
-        }
-        if (!this.anyWinCommands.isEmpty()) {
-            Object o = this.anyWinCommands.get(random.nextInt(this.anyWinCommands.size()));
-            if (o instanceof String) {
-                serverCommand((String) o, player);
-            } else if (o instanceof List) {
-                for (Object p : (List) o) {
-                    serverCommand((String) p, player);
+        } else {
+            Collectible[] collectibles = Collectible.values();
+            Collectible collectible = collectibles[random.nextInt(collectibles.length)];
+            collectible.mytems.giveItemStack(player, 1);
+            if (!this.anyWinCommands.isEmpty()) {
+                Object o = this.anyWinCommands.get(random.nextInt(this.anyWinCommands.size()));
+                if (o instanceof String) {
+                    serverCommand((String) o, player);
+                } else if (o instanceof List) {
+                    for (Object p : (List) o) {
+                        serverCommand((String) p, player);
+                    }
                 }
             }
         }
@@ -243,7 +247,7 @@ public final class MaypolePlugin extends JavaPlugin {
     }
 
     protected void serverCommand(String cmd, Player player) {
-        cmd = cmd.replace("%player%", player.getName());
+        cmd = cmd.replace("{player}", player.getName());
         getLogger().info("Running command: " + cmd);
         getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
     }
