@@ -4,11 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
@@ -46,6 +42,7 @@ public final class MaypolePlugin extends JavaPlugin {
     protected boolean debug;
     protected boolean enabled;
     protected MaypoleBook maypoleBook = new MaypoleBook(this);
+    protected HighscoreCommand highscoreCommand = new HighscoreCommand(this);
 
     @Override
     public void onEnable() {
@@ -56,6 +53,7 @@ public final class MaypolePlugin extends JavaPlugin {
         maypoleBook.enable();
         getServer().getPluginManager().registerEvents(new EventListener(this), this);
         getCommand("maypole").setExecutor(new MaypoleCommand(this));
+        getCommand("hi").setExecutor(highscoreCommand);
     }
 
     void parseConfig() {
@@ -104,20 +102,7 @@ public final class MaypolePlugin extends JavaPlugin {
                                    + completions + ChatColor.WHITE + " times.");
             }
             if (completions > 0) {
-                Map<String, Integer> hi = new HashMap<>();
-                List<String> ls = new ArrayList<>();
-                for (String key: getPlayerProgress().getKeys(false)) {
-                    hi.put(key, getPlayerProgress().getConfigurationSection(key)
-                           .getInt("Completions", 0));
-                    ls.add(key);
-                }
-                Collections.sort(ls, (a, b) -> Integer.compare(hi.get(b), hi.get(a)));
-                for (int i = 0; i < 3 && i < ls.size(); i += 1) {
-                    String key = ls.get(i);
-                    player.sendMessage("#" + (i + 1) + " " + ChatColor.GREEN + hi.get(key) + " "
-                                       + ChatColor.WHITE + getPlayerProgress()
-                                       .getConfigurationSection(key).getString("Name", "N/A"));
-                }
+                highscoreCommand.highscore(player);
             }
         }
     }

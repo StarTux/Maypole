@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,10 +19,6 @@ public final class MaypoleCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {
-        if (command.getName().equals("hi")) {
-            highscore(sender);
-            return true;
-        }
         if (args.length == 0) return false;
         switch (args[0]) {
         case "reload":
@@ -148,36 +143,5 @@ public final class MaypoleCommand implements CommandExecutor {
             return false;
         }
         return true;
-    }
-
-    protected void highscore(CommandSender sender) {
-        Map<String, Integer> hi = new HashMap<>();
-        List<String> ls = new ArrayList<>();
-        for (String key: plugin.getPlayerProgress().getKeys(false)) {
-            ConfigurationSection section = plugin.getPlayerProgress().getConfigurationSection(key);
-            int score = section.getInt("Completions", 0) * 16;
-            for (Collectible collectible : Collectible.values()) {
-                if (section.getBoolean(collectible.key)) score += 1;
-            }
-            hi.put(key, score);
-            ls.add(key);
-        }
-        Collections.sort(ls, (a, b) -> Integer.compare(hi.get(b), hi.get(a)));
-        int rank = 0;
-        sender.sendMessage(""
-                           + ChatColor.BLUE + " * * * "
-                           + ChatColor.WHITE + "Maypole"
-                           + ChatColor.GOLD + " Highscore"
-                           + ChatColor.BLUE + " * * * ");
-        for (String key: ls) {
-            int score = hi.get(key);
-            if (score == 0) break;
-            sender.sendMessage(ChatColor.GRAY + "#"
-                               + ChatColor.BLUE + (++rank)
-                               + ChatColor.GOLD + " " + score
-                               + ChatColor.BLUE + " " + plugin.getPlayerProgress()
-                               .getConfigurationSection(key).getString("Name", "N/A"));
-            if (rank >= 20) break;
-        }
     }
 }
