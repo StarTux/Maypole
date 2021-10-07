@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -128,10 +129,10 @@ public final class MaypoleBook {
             }
         }
         toc.append(Component.space());
-        toc.append(Component.join(Component.space(), listLine1));
+        toc.append(Component.join(JoinConfiguration.separator(Component.space()), listLine1));
         toc.append(Component.newline());
         toc.append(Component.space());
-        toc.append(Component.join(Component.space(), listLine2));
+        toc.append(Component.join(JoinConfiguration.separator(Component.space()), listLine2));
         toc.append(Component.newline());
         toc.append(Component.text("Collected: ", NamedTextColor.DARK_GRAY))
             .append(Component.text(count + "/" + collectibles.length, NamedTextColor.DARK_BLUE));

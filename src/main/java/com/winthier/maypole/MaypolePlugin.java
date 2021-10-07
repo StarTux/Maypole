@@ -261,7 +261,6 @@ public final class MaypolePlugin extends JavaPlugin {
                 directional.setFacing(face);
                 skullBlock.setBlockData(directional);
                 Skull skullState = (Skull) skullBlock.getState();
-                skullState.setOwner(player.getName());
                 skullState.setOwningPlayer(player);
                 skullState.setPlayerProfile(player.getPlayerProfile());
                 skullState.update();
