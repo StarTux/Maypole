@@ -48,16 +48,8 @@ public final class EventListener implements Listener {
             }
             break;
         case FERN:
-            switch (block.getBiome()) {
-            case BAMBOO_JUNGLE:
-            case BAMBOO_JUNGLE_HILLS:
-            case JUNGLE:
-            case JUNGLE_HILLS:
-            case JUNGLE_EDGE:
-            case MODIFIED_JUNGLE:
-            case MODIFIED_JUNGLE_EDGE:
+            if (block.getBiome().name().contains("JUNGLE")) {
                 plugin.unlockCollectible(player, block, Collectible.PIPE_WEED);
-            default: break;
             }
             break;
         case DEAD_BUSH:

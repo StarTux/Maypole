@@ -5,7 +5,7 @@ version: 0.1
 
 description: Maypole Event
 author: StarTux
-api-version: 1.13
+api-version: 1.18
 
 depend: [Exploits, WorldMarker, Mytems]
 
