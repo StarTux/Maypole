@@ -11,16 +11,21 @@ depend: [Exploits, WorldMarker, Mytems]
 
 commands:
   maypole:
-    description: Admin interface
+    description: Player interface
     permission: maypole.maypole
     usage: /maypole
-  hi:
-    description: Maypole highscore
-    permission: maypole.hi
-    usage: /hi
+
+  maypoleadmin:
+    aliases: [maypoleadm]
+    description: Admin interface
+    permission: maypole.admin
+    usage: /maypoleadmin
 
 permissions:
   maypole.maypole:
+    description: Play maypole, use the /maypole command
     default: op
-  maypole.hi:
-    default: true
+
+  maypole.admin:
+    description: Use the /maypoleadmin command
+    default: op

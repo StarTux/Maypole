@@ -1,7 +1,5 @@
 package com.winthier.maypole;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -29,7 +27,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public final class MaypolePlugin extends JavaPlugin {
-    public static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
     public static final String BOOK_ID = "maypole:book";
     protected YamlConfiguration playerProgress = null;
     protected List<String> eventWorlds;
@@ -42,7 +39,8 @@ public final class MaypolePlugin extends JavaPlugin {
     protected boolean debug;
     protected boolean enabled;
     protected MaypoleBook maypoleBook = new MaypoleBook(this);
-    protected HighscoreCommand highscoreCommand = new HighscoreCommand(this);
+    protected final MaypoleCommand command = new MaypoleCommand(this);
+    protected final MaypoleAdminCommand adminCommand = new MaypoleAdminCommand(this);
 
     @Override
     public void onEnable() {
@@ -52,11 +50,11 @@ public final class MaypolePlugin extends JavaPlugin {
         playerProgress = null;
         maypoleBook.enable();
         getServer().getPluginManager().registerEvents(new EventListener(this), this);
-        getCommand("maypole").setExecutor(new MaypoleCommand(this));
-        getCommand("hi").setExecutor(highscoreCommand);
+        command.enable();
+        adminCommand.enable();
     }
 
-    void parseConfig() {
+    private void parseConfig() {
         reloadConfig();
         eventWorlds = getConfig().getStringList("EventWorlds");
         poleWorld = getConfig().getString("PoleWorld");
@@ -102,7 +100,7 @@ public final class MaypolePlugin extends JavaPlugin {
                                    + completions + ChatColor.WHITE + " times.");
             }
             if (completions > 0) {
-                highscoreCommand.highscore(player);
+                command.highscore(player);
             }
         }
     }
@@ -145,7 +143,7 @@ public final class MaypolePlugin extends JavaPlugin {
         return progress.getInt("Completions", 0);
     }
 
-    void unlockCollectible(Player player, Block block, Collectible collectible) {
+    protected void unlockCollectible(Player player, Block block, Collectible collectible) {
         ConfigurationSection progress = getPlayerProgress(player);
         if (progress.getBoolean(collectible.key, false)) return;
         int maxCompletions = 0;
@@ -177,7 +175,7 @@ public final class MaypolePlugin extends JavaPlugin {
         block.getWorld().spawnParticle(Particle.FIREWORKS_SPARK, loc, 50, 1.0, 1.0, 1.0, 0.0);
     }
 
-    void sendUnlockMessage(Player player, Collectible collectible) {
+    protected void sendUnlockMessage(Player player, Collectible collectible) {
         Component message = Component.empty().color(NamedTextColor.GOLD)
             .append(Component.text("You collect the "))
             .append(collectible.mytems.component)
