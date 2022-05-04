@@ -1,15 +1,18 @@
 package com.winthier.maypole;
 
 import com.cavetale.core.command.AbstractCommand;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.bukkit.ChatColor;
+import com.cavetale.core.font.Unicode;
+import com.cavetale.mytems.item.font.Glyph;
+import com.winthier.maypole.session.Session;
+import com.winthier.maypole.sql.Highscore;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.space;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.JoinConfiguration.separator;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 public final class MaypoleCommand extends AbstractCommand<MaypolePlugin> {
     protected MaypoleCommand(final MaypolePlugin plugin) {
@@ -18,46 +21,45 @@ public final class MaypoleCommand extends AbstractCommand<MaypolePlugin> {
 
     @Override
     protected void onEnable() {
+        rootNode.addChild("book").denyTabCompletion()
+            .description("Maypole book")
+            .playerCaller(this::book);
         rootNode.addChild("hi").denyTabCompletion()
             .description("Maypole highscore")
             .senderCaller(this::highscore);
     }
 
+    private void book(Player player) {
+    }
+
     protected void highscore(CommandSender sender) {
-        Map<String, Integer> hi = new HashMap<>();
-        List<String> ls = new ArrayList<>();
-        for (String key : plugin.getPlayerProgress().getKeys(false)) {
-            ConfigurationSection section = plugin.getPlayerProgress().getConfigurationSection(key);
-            int score = section.getInt("Completions", 0) * 16;
-            for (Collectible collectible : Collectible.values()) {
-                if (section.getBoolean(collectible.key)) score += 1;
+        sender.sendMessage(join(separator(space()), plugin.maypoleTitle, text("Highscore", plugin.MAYPOLE_BLUE)));
+        if (sender instanceof Player player) {
+            Session session = plugin.sessions.get(player);
+            if (session != null && session.isEnabled()) {
+            sender.sendMessage(join(noSeparators(),
+                                    text("Your progress", GRAY),
+                                    space(),
+                                    text(Unicode.tiny("ingredients"), GRAY),
+                                    text(session.getCollectibles(), AQUA),
+                                    space(),
+                                    text(Unicode.tiny("completions"), GRAY),
+                                    text(session.getCompletions(), AQUA)));
             }
-            hi.put(key, score);
-            ls.add(key);
         }
-        Collections.sort(ls, (a, b) -> Integer.compare(hi.get(b), hi.get(a)));
-        sender.sendMessage(""
-                           + ChatColor.BLUE + " * * * "
-                           + ChatColor.WHITE + "Maypole"
-                           + ChatColor.GOLD + " Highscore"
-                           + ChatColor.BLUE + " * * * ");
         for (int i = 0; i < 10; i += 1) {
-            String key = ls.get(i);
-            int score = hi.get(key);
-            if (score == 0) break;
-            ConfigurationSection section = plugin.getPlayerProgress().getConfigurationSection(key);
-            String name = section.getString("Name", "N/A");
-            int completions = section.getInt("Completions", 0);
-            sender.sendMessage(ChatColor.GRAY + "#" + String.format("%02d", i + 1)
-                               + ChatColor.GOLD + " " + score
-                               + ChatColor.WHITE + " " + name
-                               + ChatColor.GRAY + ChatColor.ITALIC + " " + completions + " completions");
-        }
-        if (sender instanceof Player) {
-            int yourRank = ls.indexOf(((Player) sender).getUniqueId().toString());
-            if (yourRank >= 0) {
-                sender.sendMessage(ChatColor.GRAY + "Your rank: " + ChatColor.GOLD + "#" + yourRank);
-            }
+            if (i >= plugin.highscore.size()) break;
+            Highscore hi = plugin.highscore.get(i);
+            sender.sendMessage(join(noSeparators(),
+                                    Glyph.toComponent("" + hi.placement),
+                                    space(),
+                                    text(Unicode.tiny("ingredients")),
+                                    text(hi.row.getCollectibles(), GOLD),
+                                    space(),
+                                    text(Unicode.tiny("completions")),
+                                    text(hi.row.getCompletions(), GOLD),
+                                    space(),
+                                    hi.displayName()));
         }
     }
 }

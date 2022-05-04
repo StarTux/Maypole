@@ -1,6 +1,7 @@
 package com.winthier.maypole;
 
 import com.cavetale.worldmarker.item.ItemMarker;
+import com.winthier.maypole.session.Session;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -20,18 +21,17 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
 @RequiredArgsConstructor
 public final class MaypoleBook {
     private final MaypolePlugin plugin;
-    List<Component> introduction;
-    Map<Collectible, List<Component>> collectiblePages;
-    Map<Collectible, Integer> pageNumbers = new EnumMap<>(Collectible.class);
-    List<Component> content;
-    final int tocOffset = 3;
+    private List<Component> introduction;
+    private Map<Collectible, List<Component>> collectiblePages;
+    private Map<Collectible, Integer> pageNumbers = new EnumMap<>(Collectible.class);
+    private List<Component> content;
+    private final int tocOffset = 3;
 
     private ConfigurationSection loadConfiguration() {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "book.yml"));
@@ -94,7 +94,7 @@ public final class MaypoleBook {
         return i < 10 ? "0" + i : "" + i;
     }
 
-    public ItemStack makeBook(Player player) {
+    public ItemStack makeBook(Session session) {
         List<Component> tocs = new ArrayList<>();
         TextComponent.Builder toc = Component.text();
         toc.append(Component.text("Table of Contents", NamedTextColor.DARK_BLUE, TextDecoration.BOLD));
@@ -107,7 +107,7 @@ public final class MaypoleBook {
         int targetPage = 0;
         for (int i = 0; i < collectibles.length; i += 1) {
             Collectible collectible = collectibles[i];
-            boolean has = plugin.hasCollectible(player, collectible);
+            boolean has = session.has(collectible);
             if (has) count += 1;
             targetPage = pageNumbers.get(collectible);
             Component icon = (has
@@ -138,7 +138,7 @@ public final class MaypoleBook {
             .append(Component.text(count + "/" + collectibles.length, NamedTextColor.DARK_BLUE));
         toc.append(Component.newline());
         toc.append(Component.text("Completions: ", NamedTextColor.DARK_GRAY))
-            .append(Component.text(plugin.getCompletions(player), NamedTextColor.DARK_BLUE));
+            .append(Component.text(session.getCompletions(), NamedTextColor.DARK_BLUE));
         toc.append(Component.newline());
         toc.append(Component.newline());
         targetPage = tocOffset;

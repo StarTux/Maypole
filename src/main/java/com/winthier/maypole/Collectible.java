@@ -1,5 +1,6 @@
 package com.winthier.maypole;
 
+import com.cavetale.core.command.CommandWarn;
 import com.cavetale.mytems.Mytems;
 
 public enum Collectible {
@@ -39,6 +40,14 @@ public enum Collectible {
             return Collectible.valueOf(in.toUpperCase());
         } catch (IllegalArgumentException iae) {
             return null;
+        }
+    }
+
+    public static Collectible require(String in) {
+        try {
+            return valueOf(in.toUpperCase());
+        } catch (IllegalArgumentException iae) {
+            throw new CommandWarn("Collectible not found: " + in);
         }
     }
 }

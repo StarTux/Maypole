@@ -2,6 +2,7 @@ package com.winthier.maypole;
 
 import com.cavetale.worldmarker.item.ItemMarker;
 import com.winthier.exploits.Exploits;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -20,14 +21,15 @@ import org.bukkit.inventory.ItemStack;
 
 @RequiredArgsConstructor
 public final class EventListener implements Listener {
+    protected static final List<String> WORLDS = List.of("mine", "mine_nether", "mine_the_end");
     private final MaypolePlugin plugin;
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (!plugin.enabled) return;
+        if (!plugin.tag.enabled) return;
         final Player player = event.getPlayer();
         final Block block = event.getBlock();
-        if (!plugin.eventWorlds.contains(block.getWorld().getName())) return;
+        if (!WORLDS.contains(block.getWorld().getName())) return;
         if (Exploits.isPlayerPlaced(block)) return;
         switch (block.getType()) {
         case SEAGRASS:
@@ -107,9 +109,9 @@ public final class EventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
-        if (!plugin.enabled) return;
+        if (!plugin.tag.enabled) return;
         LivingEntity entity = event.getEntity();
-        if (!plugin.eventWorlds.contains(entity.getWorld().getName())) return;
+        if (!WORLDS.contains(entity.getWorld().getName())) return;
         if (entity.getType() == EntityType.PIGLIN) {
             if (entity.getWorld().getEnvironment() != World.Environment.NETHER) return;
             Player killer = entity.getKiller();
@@ -120,10 +122,10 @@ public final class EventListener implements Listener {
 
     @EventHandler(priority  = EventPriority.HIGHEST)
     public void onPlayerBucketFill(PlayerBucketFillEvent event) {
-        if (!plugin.enabled) return;
+        if (!plugin.tag.enabled) return;
         final Player player = event.getPlayer();
         final Block block = event.getBlockClicked();
-        if (!plugin.eventWorlds.contains(block.getWorld().getName())) return;
+        if (!WORLDS.contains(block.getWorld().getName())) return;
         if (Exploits.isPlayerPlaced(block)) return;
         switch (block.getType()) {
         case LAVA:
@@ -147,10 +149,9 @@ public final class EventListener implements Listener {
         case PHYSICAL: return;
         default: break;
         }
-        if (!plugin.enabled) return;
+        if (!plugin.tag.enabled) return;
         if (event.hasBlock()) {
-            Block poleBlock = plugin.getPoleBlock();
-            if (poleBlock.equals(event.getClickedBlock())) {
+            if (plugin.tag.pole.isAt(event.getClickedBlock())) {
                 plugin.interact(event.getPlayer());
                 event.setCancelled(true);
                 return;
@@ -162,8 +163,7 @@ public final class EventListener implements Listener {
             ItemStack item = event.getItem();
             if (item != null && ItemMarker.hasId(item, MaypolePlugin.BOOK_ID)) {
                 event.setCancelled(true);
-                Player player = event.getPlayer();
-                player.openBook(plugin.maypoleBook.makeBook(player));
+                plugin.openBook(event.getPlayer());
                 return;
             }
         default: break;
