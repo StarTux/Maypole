@@ -185,7 +185,7 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
         if (args.length != 1) return false;
         PlayerCache target = PlayerCache.require(args[0]);
         plugin.sessions.apply(target.uuid, session -> {
-                session.clearCollection();
+                session.resetCollection();
                 sender.sendMessage(text("Collection of " + target.name + " reset", AQUA));
             });
         return true;

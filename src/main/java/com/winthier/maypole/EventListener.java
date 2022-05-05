@@ -29,7 +29,8 @@ import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
-import static org.bukkit.event.block.Action.PHYSICAL;
+import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
+import static org.bukkit.inventory.EquipmentSlot.HAND;
 
 @RequiredArgsConstructor
 public final class EventListener implements Listener {
@@ -119,7 +120,7 @@ public final class EventListener implements Listener {
         List<MaypoleAction> list = blockActions.get(block.getType());
         if (list != null) {
             for (MaypoleAction action : list) {
-                if (action.type == MaypoleAction.Type.BLOCK_BREAK && action.checkBlock(block)) {
+                if (action.type == MaypoleAction.Type.BUCKET_FILL && action.checkBlock(block)) {
                     plugin.unlockCollectible(player, block, action);
                 }
             }
@@ -129,7 +130,8 @@ public final class EventListener implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!plugin.tag.enabled) return;
-        if (event.getAction() == PHYSICAL && event.hasBlock() && plugin.tag.pole.isAt(event.getClickedBlock())) {
+        if (event.getHand() == HAND && event.getAction() == RIGHT_CLICK_BLOCK
+            && event.hasBlock() && plugin.tag.pole.isAt(event.getClickedBlock())) {
             plugin.interact(event.getPlayer());
             event.setCancelled(true);
             return;

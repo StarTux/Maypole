@@ -161,13 +161,17 @@ public final class MaypolePlugin extends JavaPlugin {
             }
         }
         // Reset collectibles and give completion point
-        session.resetCollection();
         int completions = session.getCompletions();
         session.setCompletions(completions + 1);
+        if (completions < 7 || completions % 2 == 1) {
+            session.resetCollection();
+        } else {
+            session.randomizeCollection();
+        }
         // Dish out prizes for first completion
         if (completions == 0) {
             buildMaypole(player);
-            serverCommand("kite member Maypole " + player.getName());
+            serverCommand("kite member Maypole2 " + player.getName());
         } else {
             Collectible[] collectibles = Collectible.values();
             Collectible collectible = collectibles[random.nextInt(collectibles.length)];
