@@ -13,6 +13,8 @@ import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import static com.cavetale.core.font.Unicode.subscript;
+import static com.cavetale.core.font.Unicode.superscript;
 import static com.cavetale.core.font.Unicode.tiny;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.newline;
@@ -29,11 +31,19 @@ public final class MaypoleBook {
     private static final int TOC_OFFSET = 3;
     private static final Component[] INTRODUCTION = new Component[] {
         text("Spring has sprung, my friends, and this month, it is finally time to celebrate the obligatory May Festival."),
-        text("Aside from music, dancing, and free beer, by far the most important tradition thereof is the construction of the Maypole. For this task however, we require the cooperation of every able-bodied man, woman, and child, in the world of Cavetale."),
+        text("Aside from music, dancing, and free beer, by far the most important tradition thereof is the construction of the Maypole."),
+        join(noSeparators(),
+             text("For this task however, we require the cooperation of every able-bodied man, woman, and child, in the "),
+             text("Mining Worlds", DARK_BLUE, UNDERLINED),
+             text(" of Cavetale.")),
         text("The following is a list of the required ingredients for its construction. Some are mere decoration, others yield hidden powers known only to our top alchemists. Gather one of each and return them to the Maypole Steward."),
-        join(separator(text("\n\n")),
-             text("Keep in mind that all materials must be gathered in the Mining worlds and have to be natural, meaning you cannot just place them yourself."),
+        join(noSeparators(),
+             text("Keep in mind that all materials must be gathered in the "),
+             text("Mining Worlds", DARK_BLUE, UNDERLINED),
+             text(" and have to be natural, meaning you cannot just place them yourself.")),
+        join(noSeparators(),
              text("Thank you in advance and good luck,"),
+             newline(), newline(),
              text("The Council of May", DARK_GRAY, ITALIC)),
     };
 
@@ -86,12 +96,12 @@ public final class MaypoleBook {
                               ? (collectible.mytems.component
                                  .hoverEvent(HoverEvent.showText(join(separator(newline()),
                                                                       text(collectible.nice, plugin.MAYPOLE_YELLOW),
-                                                                      text("Page " + targetPage, GRAY),
+                                                                      text("Page " + targetPage, DARK_GRAY, ITALIC),
                                                                       text("Collected!", plugin.MAYPOLE_BLUE)))))
                               : (collectible.mytems.component.color(BLACK)
                                  .hoverEvent(HoverEvent.showText(join(separator(newline()),
                                                                       text(collectible.nice, GRAY),
-                                                                      text("Page " + targetPage, GRAY),
+                                                                      text("Page " + targetPage, DARK_GRAY, ITALIC),
                                                                       text("Not yet collected!", DARK_GRAY))))))
                 .clickEvent(ClickEvent.changePage(targetPage));
             if (i < 8) {
@@ -108,32 +118,32 @@ public final class MaypoleBook {
         toc.append(newline());
         toc.append(join(separator(space()),
                         text(tiny("collected"), DARK_GRAY),
-                        text(count + "/" + collectibles.length, DARK_BLUE)));
+                        text(superscript(count) + "/" + subscript(collectibles.length), DARK_BLUE)));
         toc.append(newline());
         toc.append(join(separator(space()),
-                        text("completed", DARK_GRAY),
+                        text(tiny("completed"), DARK_GRAY),
                         text(session.getCompletions(), DARK_BLUE)));
         toc.append(newline());
         toc.append(newline());
         targetPage = TOC_OFFSET;
-        toc.append(text()
-                   .append(text(fmt(targetPage) + " ").color(DARK_GRAY).decorate(ITALIC))
-                   .append(text(tiny("introduction"), DARK_BLUE))
+        toc.append(join(noSeparators(),
+                        text(subscript(fmt(targetPage)) + " ", DARK_GRAY),
+                        text(tiny("introduction"), DARK_BLUE))
                    .clickEvent(ClickEvent.changePage(targetPage))
-                   .hoverEvent(HoverEvent.showText(text("Jump to page " + fmt(targetPage))))
-                   .build());
+                   .hoverEvent(HoverEvent.showText(text("Jump to page " + targetPage, GRAY, ITALIC))));
         toc.append(newline());
         for (int i = 0; i < collectibles.length; i += 1) {
             Collectible collectible = collectibles[i];
             Component icon = collectible.mytems.component;
             targetPage = pageNumbers.get(collectible);
-            toc.append(text()
-                       .append(text(fmt(targetPage) + " ").color(DARK_GRAY).decorate(ITALIC))
-                       .append(icon)
-                       .append(text(tiny(collectible.nice.toLowerCase()), DARK_BLUE))
+            toc.append(join(noSeparators(),
+                            text(subscript(fmt(targetPage)) + " ", DARK_GRAY),
+                            icon,
+                            text(tiny(collectible.nice.toLowerCase()), DARK_BLUE))
                        .clickEvent(ClickEvent.changePage(targetPage))
-                       .hoverEvent(HoverEvent.showText(text("Jump to page " + fmt(targetPage))))
-                       .build());
+                       .hoverEvent(HoverEvent.showText(join(noSeparators(),
+                                                            icon, text(collectible.nice, BLUE), newline(),
+                                                            text("Jump to page " + targetPage, GRAY, ITALIC)))));
             toc.append(newline());
             if (i == 4) {
                 tocs.add(toc.build());

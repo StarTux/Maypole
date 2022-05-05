@@ -23,10 +23,10 @@ public final class MaypoleCommand extends AbstractCommand<MaypolePlugin> {
     @Override
     protected void onEnable() {
         rootNode.addChild("book").denyTabCompletion()
-            .description("Maypole book")
+            .description("Open book")
             .playerCaller(this::book);
         rootNode.addChild("hi").denyTabCompletion()
-            .description("Maypole highscore")
+            .description("View highscore")
             .senderCaller(this::highscore);
     }
 
