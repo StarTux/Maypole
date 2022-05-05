@@ -1,8 +1,14 @@
 package com.winthier.maypole;
 
+import com.cavetale.core.font.Unicode;
+import com.cavetale.sidebar.PlayerSidebarEvent;
+import com.cavetale.sidebar.Priority;
 import com.winthier.exploits.Exploits;
+import com.winthier.maypole.session.Session;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -16,6 +22,10 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static org.bukkit.event.block.Action.PHYSICAL;
 
 @RequiredArgsConstructor
@@ -150,5 +160,36 @@ public final class EventListener implements Listener {
             event.setCancelled(true);
             return;
         }
+    }
+
+    @EventHandler
+    public void onPlayerSidebar(PlayerSidebarEvent event) {
+        if (!plugin.tag.enabled) return;
+        Session session = plugin.sessions.get(event.getPlayer());
+        if (session == null || !session.isEnabled()) return;
+        Collectible[] collectibles = Collectible.values();
+        final int lineCount = 2;
+        final int lineLength = collectibles.length / lineCount;
+        List<List<Component>> lines2 = new ArrayList<>(lineCount);
+        for (int i = 0; i < lineCount; i += 1) {
+            lines2.add(new ArrayList<>());
+        }
+        int total = 0;
+        for (Collectible collectible : collectibles) {
+            boolean has = session.has(collectible);
+            if (has) total += 1;
+            lines2.get(collectible.ordinal() / lineLength)
+                .add(has
+                     ? collectible.mytems.component
+                     : collectible.mytems.component.color(BLACK));
+        }
+        List<Component> lines = new ArrayList<>();
+        lines.add(join(noSeparators(),
+                       text("/maypole ", plugin.MAYPOLE_YELLOW),
+                       text(Unicode.superscript(total) + "/" + Unicode.subscript(collectibles.length), plugin.MAYPOLE_BLUE)));
+        for (List<Component> components : lines2) {
+            lines.add(join(noSeparators(), components));
+        }
+        event.add(plugin, Priority.HIGH, lines);
     }
 }

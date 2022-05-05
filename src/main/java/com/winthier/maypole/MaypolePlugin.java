@@ -57,7 +57,6 @@ public final class MaypolePlugin extends JavaPlugin {
     public void onEnable() {
         loadTag();
         Database.enable(this);
-        saveResource("book.yml", tag.debug);
         getServer().getPluginManager().registerEvents(new EventListener(this), this);
         command.enable();
         adminCommand.enable();

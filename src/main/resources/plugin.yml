@@ -7,7 +7,7 @@ description: Maypole Event
 author: StarTux
 api-version: 1.18
 
-depend: [Core, SQL, PlayerCache, Exploits, Mytems]
+depend: [Core, SQL, PlayerCache, Exploits, Mytems, Sidebar]
 
 commands:
   maypole:

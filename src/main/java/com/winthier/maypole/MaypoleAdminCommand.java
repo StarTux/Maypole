@@ -31,27 +31,27 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
             .completers(CommandArgCompleter.NULL)
             .description("Test complete ingredient return")
             .senderCaller(this::testReturn);
+        rootNode.addChild("enabled").arguments("true|false")
+            .completers(CommandArgCompleter.NULL)
+            .description("Enable or disable Maypole")
+            .senderCaller(this::enabled);
         CommandNode collectibles = rootNode.addChild("collectibles")
             .description("Collectible subcommands");
         collectibles.addChild("list").arguments("<player>")
-            .completers(CommandArgCompleter.NULL)
-            .description("List collectibles")
-            .senderCaller(this::collectiblesList);
-        collectibles.addChild("list").arguments("<player>")
-            .completers(CommandArgCompleter.NULL)
+            .completers(PlayerCache.NAME_COMPLETER)
             .description("List collectibles")
             .senderCaller(this::collectiblesList);
         collectibles.addChild("give").arguments("<player> <collectible>")
-            .completers(CommandArgCompleter.NULL,
+            .completers(PlayerCache.NAME_COMPLETER,
                         CommandArgCompleter.enumLowerList(Collectible.class))
             .description("Unlock collectible")
             .senderCaller(this::collectiblesGive);
         collectibles.addChild("all").arguments("<player>")
-            .completers(CommandArgCompleter.NULL)
+            .completers(PlayerCache.NAME_COMPLETER)
             .description("Unlock all collectibles")
             .senderCaller(this::collectiblesAll);
         collectibles.addChild("clear").arguments("<player>")
-            .completers(CommandArgCompleter.NULL)
+            .completers(PlayerCache.NAME_COMPLETER)
             .description("Clear collectibles")
             .senderCaller(this::collectiblesClear);
         collectibles.addChild("message").arguments("<player> <collectible>")
@@ -98,6 +98,22 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
         if (target == null) throw new CommandWarn("Player not found: " + args[0]);
         sender.sendMessage(text("Triggering complete return for " + target.getName(), AQUA));
         plugin.playerReturns(target);
+        return true;
+    }
+
+    private boolean enabled(CommandSender sender, String[] args) {
+        if (args.length != 1) return false;
+        boolean value;
+        try {
+            value = Boolean.parseBoolean(args[0]);
+        } catch (IllegalArgumentException iae) {
+            throw new CommandWarn("Boolean expected: " + args[0]);
+        }
+        plugin.tag.enabled = value;
+        plugin.saveTag();
+        sender.sendMessage(join(noSeparators(),
+                                text("Maypole enabled: ", AQUA),
+                                text("" + value, value ? GREEN : RED)));
         return true;
     }
 
