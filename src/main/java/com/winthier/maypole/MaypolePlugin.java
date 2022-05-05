@@ -57,7 +57,8 @@ public final class MaypolePlugin extends JavaPlugin {
     public void onEnable() {
         loadTag();
         Database.enable(this);
-        getServer().getPluginManager().registerEvents(new EventListener(this), this);
+        new EventListener(this).enable();
+        Collectible.validate(this);
         command.enable();
         adminCommand.enable();
         maypoleBook.enable();
@@ -103,12 +104,19 @@ public final class MaypolePlugin extends JavaPlugin {
         }
     }
 
-    protected void unlockCollectible(Player player, Block block, Collectible collectible) {
+    protected void unlockCollectible(Player player, Block block, MaypoleAction action) {
         Session session = sessions.get(player);
         if (session == null || !session.isEnabled()) return;
-        if (session.has(collectible)) return;
+        for (Collectible collectible : Collectible.values()) {
+            if (!session.has(collectible) && session.getAction(collectible) == action) {
+                unlockCollectible(player, session, block, collectible);
+            }
+        }
+    }
+
+    private void unlockCollectible(Player player, Session session, Block block, Collectible collectible) {
         int completions = session.getCompletions();
-        double chance = 1.0 / (double) (completions + 3);
+        double chance = 1.0 / (double) (completions + 1);
         double roll = random.nextDouble();
         Location loc = block.getLocation().add(0.5, 0.5, 0.5);
         if (tag.debug) {
@@ -153,7 +161,7 @@ public final class MaypolePlugin extends JavaPlugin {
             }
         }
         // Reset collectibles and give completion point
-        session.clearCollection();
+        session.resetCollection();
         int completions = session.getCompletions();
         session.setCompletions(completions + 1);
         // Dish out prizes for first completion

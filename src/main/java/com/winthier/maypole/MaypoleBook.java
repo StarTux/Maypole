@@ -66,7 +66,11 @@ public final class MaypoleBook {
         Map<Collectible, Integer> pageNumbers = new EnumMap<>(Collectible.class);
         for (Collectible collectible : Collectible.values()) {
             pageNumbers.put(collectible, TOC_OFFSET + content.size());
-            for (String page : collectible.getBookPages()) {
+            MaypoleAction action = session.getAction(collectible);
+            List<String> pages = new ArrayList<>();
+            pages.addAll(collectible.getBookPages());
+            pages.addAll(action.getBookPages());
+            for (String page : pages) {
                 content.add(join(noSeparators(),
                                  (join(noSeparators(),
                                        collectible.mytems.component,

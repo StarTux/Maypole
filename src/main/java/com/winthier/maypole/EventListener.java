@@ -6,11 +6,13 @@ import com.cavetale.sidebar.Priority;
 import com.winthier.exploits.Exploits;
 import com.winthier.maypole.session.Session;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -22,6 +24,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import static com.winthier.maypole.MaypoleAction.*;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
@@ -32,87 +35,59 @@ import static org.bukkit.event.block.Action.PHYSICAL;
 public final class EventListener implements Listener {
     protected static final List<String> WORLDS = List.of("mine", "mine_nether", "mine_the_end");
     private final MaypolePlugin plugin;
+    private final EnumMap<Material, List<MaypoleAction>> blockActions = new EnumMap<>(Material.class);
+    private final EnumMap<EntityType, List<MaypoleAction>> entityActions = new EnumMap<>(EntityType.class);
+
+    protected void enable() {
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+        for (MaypoleAction action : MaypoleAction.values()) {
+            switch (action.type) {
+            case INVALID: break;
+            case BLOCK_BREAK:
+            case BUCKET_FILL:
+                for (Material material : action.materials) {
+                    blockActions.computeIfAbsent(material, m -> new ArrayList<>()).add(action);
+                }
+                break;
+            case ENTITY_KILL:
+                for (EntityType entityType : action.entityTypes) {
+                    entityActions.computeIfAbsent(entityType, e -> new ArrayList<>()).add(action);
+                }
+                break;
+            default: throw new IllegalStateException(action.type.name());
+            }
+        }
+        EnumSet<MaypoleAction> unusedActions = EnumSet.allOf(MaypoleAction.class);
+        unusedActions.remove(NONE);
+        for (List<MaypoleAction> list : blockActions.values()) {
+            for (MaypoleAction action : list) {
+                unusedActions.remove(action);
+            }
+        }
+        for (List<MaypoleAction> list : entityActions.values()) {
+            for (MaypoleAction action : list) {
+                unusedActions.remove(action);
+            }
+        }
+        if (!unusedActions.isEmpty()) {
+            plugin.getLogger().warning("[EventListener] Unused MaypoleActions: " + unusedActions);
+        }
+    }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onBlockBreak(BlockBreakEvent event) {
+    private void onBlockBreak(BlockBreakEvent event) {
         if (!plugin.tag.enabled) return;
         final Player player = event.getPlayer();
         final Block block = event.getBlock();
         if (!WORLDS.contains(block.getWorld().getName())) return;
         if (Exploits.isPlayerPlaced(block)) return;
-        switch (block.getType()) {
-        case SEAGRASS:
-            if (block.getBiome().name().contains("SWAMP")) {
-                plugin.unlockCollectible(player, block, Collectible.LUCID_LILY);
+        List<MaypoleAction> list = blockActions.get(block.getType());
+        if (list != null) {
+            for (MaypoleAction action : list) {
+                if (action.type == MaypoleAction.Type.BLOCK_BREAK && action.checkBlock(block)) {
+                    plugin.unlockCollectible(player, block, action);
+                }
             }
-            break;
-        case ORANGE_TULIP:
-            plugin.unlockCollectible(player, block, Collectible.ORANGE_ONION);
-            break;
-        case ROSE_BUSH:
-            plugin.unlockCollectible(player, block, Collectible.RED_ROSE);
-            break;
-        case GRASS:
-        case TALL_GRASS:
-            if (block.getTemperature() < 0.2) {
-                plugin.unlockCollectible(player, block, Collectible.FROST_FLOWER);
-            }
-            break;
-        case FERN:
-            if (block.getBiome().name().contains("JUNGLE")) {
-                plugin.unlockCollectible(player, block, Collectible.PIPE_WEED);
-            }
-            break;
-        case DEAD_BUSH:
-            if (block.getBiome().name().contains("DESERT")) {
-                plugin.unlockCollectible(player, block, Collectible.HEAT_ROOT);
-            }
-            break;
-        case CACTUS:
-            if (block.getRelative(0, -1, 0).getType() == Material.SAND) {
-                plugin.unlockCollectible(player, block, Collectible.CACTUS_BLOSSOM);
-            }
-            break;
-        case PUMPKIN:
-            plugin.unlockCollectible(player, block, Collectible.KINGS_PUMPKIN);
-            break;
-        case BRAIN_CORAL:
-        case BRAIN_CORAL_BLOCK:
-        case BUBBLE_CORAL:
-        case BUBBLE_CORAL_BLOCK:
-        case FIRE_CORAL:
-        case FIRE_CORAL_BLOCK:
-        case HORN_CORAL:
-        case HORN_CORAL_BLOCK:
-        case TUBE_CORAL:
-        case TUBE_CORAL_BLOCK:
-            plugin.unlockCollectible(player, block, Collectible.CLAMSHELL);
-            break;
-        case BLUE_ICE:
-        case PACKED_ICE:
-            plugin.unlockCollectible(player, block, Collectible.FROZEN_AMBER);
-            break;
-        case SPRUCE_LEAVES:
-            if (block.getBiome().name().contains("TAIGA")) {
-                plugin.unlockCollectible(player, block, Collectible.PINE_CONE);
-            }
-            break;
-        case MOSSY_COBBLESTONE:
-        case MOSSY_COBBLESTONE_SLAB:
-        case MOSSY_COBBLESTONE_STAIRS:
-        case MOSSY_COBBLESTONE_WALL:
-        case MOSSY_STONE_BRICKS:
-        case MOSSY_STONE_BRICK_SLAB:
-        case MOSSY_STONE_BRICK_STAIRS:
-        case MOSSY_STONE_BRICK_WALL:
-            plugin.unlockCollectible(player, block, Collectible.CLUMP_OF_MOSS);
-            break;
-        case BROWN_MUSHROOM:
-            if (block.getBiome().name().contains("SWAMP")) {
-                plugin.unlockCollectible(player, block, Collectible.MISTY_MOREL);
-            }
-            break;
-        default: break;
         }
     }
 
@@ -121,11 +96,16 @@ public final class EventListener implements Listener {
         if (!plugin.tag.enabled) return;
         LivingEntity entity = event.getEntity();
         if (!WORLDS.contains(entity.getWorld().getName())) return;
-        if (entity.getType() == EntityType.PIGLIN) {
-            if (entity.getWorld().getEnvironment() != World.Environment.NETHER) return;
+        List<MaypoleAction> list = entityActions.get(entity.getType());
+        if (list != null) {
             Player killer = entity.getKiller();
             if (killer == null) return;
-            plugin.unlockCollectible(killer, entity.getEyeLocation().getBlock(), Collectible.FIRE_AMANITA);
+            Block block = entity.getEyeLocation().getBlock();
+            for (MaypoleAction action : list) {
+                if (action.type == MaypoleAction.Type.ENTITY_KILL && action.checkBlock(block)) {
+                    plugin.unlockCollectible(killer, block, action);
+                }
+            }
         }
     }
 
@@ -136,19 +116,13 @@ public final class EventListener implements Listener {
         final Block block = event.getBlockClicked();
         if (!WORLDS.contains(block.getWorld().getName())) return;
         if (Exploits.isPlayerPlaced(block)) return;
-        switch (block.getType()) {
-        case LAVA:
-            if (block.getY() > 48
-                && block.getRelative(0, 1, 0).getLightFromSky() >= 8) {
-                plugin.unlockCollectible(player, block, Collectible.SPARK_SEED);
+        List<MaypoleAction> list = blockActions.get(block.getType());
+        if (list != null) {
+            for (MaypoleAction action : list) {
+                if (action.type == MaypoleAction.Type.BLOCK_BREAK && action.checkBlock(block)) {
+                    plugin.unlockCollectible(player, block, action);
+                }
             }
-            break;
-        case WATER:
-            if (block.getBiome().name().contains("DESERT")) {
-                plugin.unlockCollectible(player, block, Collectible.OASIS_WATER);
-            }
-            break;
-        default: break;
         }
     }
 
@@ -165,7 +139,9 @@ public final class EventListener implements Listener {
     @EventHandler
     public void onPlayerSidebar(PlayerSidebarEvent event) {
         if (!plugin.tag.enabled) return;
-        Session session = plugin.sessions.get(event.getPlayer());
+        Player player = event.getPlayer();
+        if (!player.hasPermission("maypole.maypole")) return;
+        Session session = plugin.sessions.get(player);
         if (session == null || !session.isEnabled()) return;
         Collectible[] collectibles = Collectible.values();
         final int lineCount = 2;

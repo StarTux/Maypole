@@ -1,13 +1,16 @@
 package com.winthier.maypole.session;
 
 import com.winthier.maypole.Collectible;
+import com.winthier.maypole.MaypoleAction;
 import com.winthier.maypole.sql.SQLCollectible;
 import com.winthier.maypole.sql.SQLPlayer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +37,11 @@ public final class Session {
         database().find(SQLCollectible.class).findListAsync(rows -> {
                 for (SQLCollectible row : rows) {
                     collectibleRows.put(row.getCollectible(), row);
+                    if (!row.getMaypoleAction().isValid()) {
+                        List<MaypoleAction> options = List.copyOf(row.getCollectible().actions);
+                        row.setMaypoleAction(options.get(ThreadLocalRandom.current().nextInt(options.size())));
+                        database().updateAsync(row, null, "action");
+                    }
                 }
                 onEnable();
             });
@@ -88,6 +96,29 @@ public final class Session {
         }
     }
 
+    public void resetCollection() {
+        for (Collectible it : Collectible.values()) {
+            SQLCollectible row = collectibleRows.get(it);
+            row.setHas(false);
+            List<MaypoleAction> options = List.copyOf(row.getCollectible().actions);
+            row.setMaypoleAction(options.get(ThreadLocalRandom.current().nextInt(options.size())));
+            database().updateAsync(row, null, "has", "action");
+        }
+    }
+
+    public void randomizeCollection() {
+        List<MaypoleAction> options = new ArrayList<>(List.of(MaypoleAction.values()));
+        options.remove(MaypoleAction.NONE);
+        Collections.shuffle(options);
+        int index = 0;
+        for (Collectible it : Collectible.values()) {
+            SQLCollectible row = collectibleRows.get(it);
+            row.setHas(false);
+            row.setMaypoleAction(options.get(index++));
+            database().updateAsync(row, null, "has", "action");
+        }
+    }
+
     public boolean hasBook() {
         return playerRow.doesHaveBook();
     }
@@ -96,5 +127,16 @@ public final class Session {
         if (playerRow.doesHaveBook() == value) return;
         playerRow.setHasBook(value);
         database().updateAsync(playerRow, null, "hasBook");
+    }
+
+    public MaypoleAction getAction(Collectible collectible) {
+        return collectibleRows.get(collectible).getMaypoleAction();
+    }
+
+    public void setAction(Collectible collectible, MaypoleAction value) {
+        SQLCollectible row = collectibleRows.get(collectible);
+        if (row.getMaypoleAction() == value) return;
+        row.setMaypoleAction(value);
+        database().updateAsync(row, null, "action");
     }
 }

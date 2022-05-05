@@ -54,6 +54,14 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
             .completers(PlayerCache.NAME_COMPLETER)
             .description("Clear collectibles")
             .senderCaller(this::collectiblesClear);
+        collectibles.addChild("reset").arguments("<player>")
+            .completers(PlayerCache.NAME_COMPLETER)
+            .description("Reset collectibles")
+            .senderCaller(this::collectiblesReset);
+        collectibles.addChild("randomize").arguments("<player>")
+            .completers(PlayerCache.NAME_COMPLETER)
+            .description("Randomize collectibles")
+            .senderCaller(this::collectiblesRandomize);
         collectibles.addChild("message").arguments("<player> <collectible>")
             .completers(CommandArgCompleter.NULL,
                         CommandArgCompleter.enumLowerList(Collectible.class))
@@ -125,7 +133,12 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
                 sender.sendMessage(join(noSeparators(), text("Completions: ", GRAY), text(session.getCompletions(), AQUA)));
                 sender.sendMessage(join(noSeparators(), text("Collectibles: ", GRAY), text(session.getCollectibles(), AQUA)));
                 for (Collectible it : Collectible.values()) {
-                    sender.sendMessage(join(noSeparators(), text(it + ": ", GRAY), text(session.has(it), AQUA)));
+                    boolean has = session.has(it);
+                    sender.sendMessage(join(noSeparators(),
+                                            text(it + ": ", GRAY),
+                                            text(has, has ? GREEN : RED),
+                                            text(", ", DARK_GRAY),
+                                            text("" + session.getAction(it), AQUA)));
                 }
             });
         return true;
@@ -164,6 +177,26 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
         plugin.sessions.apply(target.uuid, session -> {
                 session.clearCollection();
                 sender.sendMessage(text("Collection of " + target.name + " cleared", AQUA));
+            });
+        return true;
+    }
+
+    private boolean collectiblesReset(CommandSender sender, String[] args) {
+        if (args.length != 1) return false;
+        PlayerCache target = PlayerCache.require(args[0]);
+        plugin.sessions.apply(target.uuid, session -> {
+                session.clearCollection();
+                sender.sendMessage(text("Collection of " + target.name + " reset", AQUA));
+            });
+        return true;
+    }
+
+    private boolean collectiblesRandomize(CommandSender sender, String[] args) {
+        if (args.length != 1) return false;
+        PlayerCache target = PlayerCache.require(args[0]);
+        plugin.sessions.apply(target.uuid, session -> {
+                session.randomizeCollection();
+                sender.sendMessage(text("Collection of " + target.name + " randomized", AQUA));
             });
         return true;
     }
