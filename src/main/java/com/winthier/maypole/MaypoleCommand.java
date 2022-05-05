@@ -1,6 +1,7 @@
 package com.winthier.maypole;
 
 import com.cavetale.core.command.AbstractCommand;
+import com.cavetale.core.command.CommandWarn;
 import com.cavetale.core.font.Unicode;
 import com.cavetale.mytems.item.font.Glyph;
 import com.winthier.maypole.session.Session;
@@ -30,6 +31,9 @@ public final class MaypoleCommand extends AbstractCommand<MaypolePlugin> {
     }
 
     private void book(Player player) {
+        if (!plugin.openBook(player)) {
+            throw new CommandWarn("Please try again later");
+        }
     }
 
     protected void highscore(CommandSender sender) {
@@ -40,10 +44,10 @@ public final class MaypoleCommand extends AbstractCommand<MaypolePlugin> {
             sender.sendMessage(join(noSeparators(),
                                     text("Your progress", GRAY),
                                     space(),
-                                    text(Unicode.tiny("ingredients"), GRAY),
+                                    text(Unicode.tiny("collect"), GRAY),
                                     text(session.getCollectibles(), AQUA),
                                     space(),
-                                    text(Unicode.tiny("completions"), GRAY),
+                                    text(Unicode.tiny("complete"), GRAY),
                                     text(session.getCompletions(), AQUA)));
             }
         }
@@ -53,10 +57,10 @@ public final class MaypoleCommand extends AbstractCommand<MaypolePlugin> {
             sender.sendMessage(join(noSeparators(),
                                     Glyph.toComponent("" + hi.placement),
                                     space(),
-                                    text(Unicode.tiny("ingredients")),
+                                    text(Unicode.tiny("collect")),
                                     text(hi.row.getCollectibles(), GOLD),
                                     space(),
-                                    text(Unicode.tiny("completions")),
+                                    text(Unicode.tiny("complete")),
                                     text(hi.row.getCompletions(), GOLD),
                                     space(),
                                     hi.displayName()));

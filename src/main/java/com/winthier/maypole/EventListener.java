@@ -1,6 +1,5 @@
 package com.winthier.maypole;
 
-import com.cavetale.worldmarker.item.ItemMarker;
 import com.winthier.exploits.Exploits;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
+import static org.bukkit.event.block.Action.PHYSICAL;
 
 @RequiredArgsConstructor
 public final class EventListener implements Listener {
@@ -145,28 +144,11 @@ public final class EventListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        switch (event.getAction()) {
-        case PHYSICAL: return;
-        default: break;
-        }
         if (!plugin.tag.enabled) return;
-        if (event.hasBlock()) {
-            if (plugin.tag.pole.isAt(event.getClickedBlock())) {
-                plugin.interact(event.getPlayer());
-                event.setCancelled(true);
-                return;
-            }
-        }
-        switch (event.getAction()) {
-        case RIGHT_CLICK_BLOCK:
-        case RIGHT_CLICK_AIR:
-            ItemStack item = event.getItem();
-            if (item != null && ItemMarker.hasId(item, MaypolePlugin.BOOK_ID)) {
-                event.setCancelled(true);
-                plugin.openBook(event.getPlayer());
-                return;
-            }
-        default: break;
+        if (event.getAction() == PHYSICAL && event.hasBlock() && plugin.tag.pole.isAt(event.getClickedBlock())) {
+            plugin.interact(event.getPlayer());
+            event.setCancelled(true);
+            return;
         }
     }
 }

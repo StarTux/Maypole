@@ -1,6 +1,5 @@
 package com.winthier.maypole;
 
-import com.cavetale.worldmarker.item.ItemMarker;
 import com.winthier.maypole.session.Session;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -10,19 +9,22 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.newline;
+import static net.kyori.adventure.text.Component.space;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.separator;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
+import static net.kyori.adventure.text.format.TextDecoration.*;
 
 @RequiredArgsConstructor
 public final class MaypoleBook {
@@ -44,9 +46,7 @@ public final class MaypoleBook {
         List<Component> pages = new ArrayList<>(in.size());
         for (Object o : in) {
             if (o instanceof String) {
-                String string = (String) o;
-                string = ChatColor.translateAlternateColorCodes('&', string);
-                pages.add(Component.text(string));
+                pages.add(text((String) o));
             } else {
                 throw new IllegalStateException(o.getClass().getName());
             }
@@ -60,11 +60,11 @@ public final class MaypoleBook {
         collectiblePages = new EnumMap<>(Collectible.class);
         content = new ArrayList<>();
         for (int i = 0; i < introduction.size(); i += 1) {
-            introduction.set(i, Component.text()
-                             .append(Component.text()
-                                     .append(Component.text("Introduction\n", NamedTextColor.DARK_BLUE, TextDecoration.BOLD))
+            introduction.set(i, text()
+                             .append(text()
+                                     .append(text("Introduction\n", DARK_BLUE, BOLD))
                                      .clickEvent(ClickEvent.changePage(1))
-                                     .hoverEvent(HoverEvent.showText(Component.text("Return to table of contents")))
+                                     .hoverEvent(HoverEvent.showText(text("Return to table of contents")))
                                      .build())
                              .append(introduction.get(i))
                              .build());
@@ -76,12 +76,12 @@ public final class MaypoleBook {
             pageNumbers.put(collectible, targetPage);
             List<Component> thePages = collectiblePages.get(collectible);
             for (int i = 0; i < thePages.size(); i += 1) {
-                thePages.set(i, Component.text()
-                             .append(Component.text()
+                thePages.set(i, text()
+                             .append(text()
                                      .append(collectible.mytems.component)
-                                     .append(Component.text(" " + collectible.nice + "\n", NamedTextColor.DARK_BLUE, TextDecoration.BOLD))
+                                     .append(text(" " + collectible.nice + "\n", DARK_BLUE, BOLD))
                                      .clickEvent(ClickEvent.changePage(1))
-                                     .hoverEvent(HoverEvent.showText(Component.text("Return to table of contents")))
+                                     .hoverEvent(HoverEvent.showText(text("Return to table of contents")))
                                      .build())
                              .append(thePages.get(i))
                              .build());
@@ -96,10 +96,10 @@ public final class MaypoleBook {
 
     public ItemStack makeBook(Session session) {
         List<Component> tocs = new ArrayList<>();
-        TextComponent.Builder toc = Component.text();
-        toc.append(Component.text("Table of Contents", NamedTextColor.DARK_BLUE, TextDecoration.BOLD));
-        toc.append(Component.newline());
-        toc.append(Component.newline());
+        TextComponent.Builder toc = text();
+        toc.append(text("Table of Contents", DARK_BLUE, BOLD));
+        toc.append(newline());
+        toc.append(newline());
         Collectible[] collectibles = Collectible.values();
         List<Component> listLine1 = new ArrayList<>(8);
         List<Component> listLine2 = new ArrayList<>(8);
@@ -112,15 +112,15 @@ public final class MaypoleBook {
             targetPage = pageNumbers.get(collectible);
             Component icon = (has
                               ? (collectible.mytems.component
-                                 .hoverEvent(HoverEvent.showText(Component.text()
-                                                                 .append(Component.text(collectible.nice, NamedTextColor.BLUE))
-                                                                 .append(Component.newline())
-                                                                 .append(Component.text("Collected!", NamedTextColor.BLUE)))))
+                                 .hoverEvent(HoverEvent.showText(text()
+                                                                 .append(text(collectible.nice, BLUE))
+                                                                 .append(newline())
+                                                                 .append(text("Collected!", BLUE)))))
                               : (collectible.mytems.component.color(TextColor.color(0x202020))
-                                 .hoverEvent(HoverEvent.showText(Component.text()
-                                                                 .append(Component.text(collectible.nice, NamedTextColor.GRAY))
-                                                                 .append(Component.newline())
-                                                                 .append(Component.text("Not yet collected!", NamedTextColor.DARK_GRAY))))))
+                                 .hoverEvent(HoverEvent.showText(text()
+                                                                 .append(text(collectible.nice, GRAY))
+                                                                 .append(newline())
+                                                                 .append(text("Not yet collected!", DARK_GRAY))))))
                 .clickEvent(ClickEvent.changePage(targetPage));
             if (i < 8) {
                 listLine1.add(icon);
@@ -128,43 +128,43 @@ public final class MaypoleBook {
                 listLine2.add(icon);
             }
         }
-        toc.append(Component.space());
-        toc.append(Component.join(JoinConfiguration.separator(Component.space()), listLine1));
-        toc.append(Component.newline());
-        toc.append(Component.space());
-        toc.append(Component.join(JoinConfiguration.separator(Component.space()), listLine2));
-        toc.append(Component.newline());
-        toc.append(Component.text("Collected: ", NamedTextColor.DARK_GRAY))
-            .append(Component.text(count + "/" + collectibles.length, NamedTextColor.DARK_BLUE));
-        toc.append(Component.newline());
-        toc.append(Component.text("Completions: ", NamedTextColor.DARK_GRAY))
-            .append(Component.text(session.getCompletions(), NamedTextColor.DARK_BLUE));
-        toc.append(Component.newline());
-        toc.append(Component.newline());
+        toc.append(space());
+        toc.append(join(separator(space()), listLine1));
+        toc.append(newline());
+        toc.append(space());
+        toc.append(join(separator(space()), listLine2));
+        toc.append(newline());
+        toc.append(text("Collected: ", DARK_GRAY))
+            .append(text(count + "/" + collectibles.length, DARK_BLUE));
+        toc.append(newline());
+        toc.append(text("Completions: ", DARK_GRAY))
+            .append(text(session.getCompletions(), DARK_BLUE));
+        toc.append(newline());
+        toc.append(newline());
         targetPage = tocOffset;
-        toc.append(Component.text()
-                   .append(Component.text(fmt(targetPage) + " ").color(NamedTextColor.DARK_GRAY).decorate(TextDecoration.ITALIC))
-                   .append(Component.text("Introduction\n", NamedTextColor.DARK_BLUE))
+        toc.append(text()
+                   .append(text(fmt(targetPage) + " ").color(DARK_GRAY).decorate(ITALIC))
+                   .append(text("Introduction\n", DARK_BLUE))
                    .clickEvent(ClickEvent.changePage(targetPage))
-                   .hoverEvent(HoverEvent.showText(Component.text("Jump to page " + fmt(targetPage))))
+                   .hoverEvent(HoverEvent.showText(text("Jump to page " + fmt(targetPage))))
                    .build());
         for (int i = 0; i < collectibles.length; i += 1) {
             Collectible collectible = collectibles[i];
             Component icon = collectible.mytems.component;
             targetPage = pageNumbers.get(collectible);
-            toc.append(Component.text()
-                       .append(Component.text(fmt(targetPage) + " ").color(NamedTextColor.DARK_GRAY).decorate(TextDecoration.ITALIC))
+            toc.append(text()
+                       .append(text(fmt(targetPage) + " ").color(DARK_GRAY).decorate(ITALIC))
                        .append(icon)
-                       .append(Component.text(" " + collectible.nice + "\n", NamedTextColor.DARK_BLUE))
+                       .append(text(" " + collectible.nice + "\n", DARK_BLUE))
                        .clickEvent(ClickEvent.changePage(targetPage))
-                       .hoverEvent(HoverEvent.showText(Component.text("Jump to page " + fmt(targetPage))))
+                       .hoverEvent(HoverEvent.showText(text("Jump to page " + fmt(targetPage))))
                        .build());
             if (i == 4) {
                 tocs.add(toc.build());
-                toc = Component.text();
-                toc.append(Component.text("Table of Contents", NamedTextColor.DARK_BLUE, TextDecoration.BOLD));
-                toc.append(Component.newline());
-                toc.append(Component.newline());
+                toc = text();
+                toc.append(text("Table of Contents", DARK_BLUE, BOLD));
+                toc.append(newline());
+                toc.append(newline());
             }
         }
         tocs.add(toc.build());
@@ -175,13 +175,14 @@ public final class MaypoleBook {
         pages.addAll(tocs);
         pages.addAll(content);
         ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
-        BookMeta meta = (BookMeta) item.getItemMeta();
-        meta.setGeneration(BookMeta.Generation.ORIGINAL);
-        meta.author(Component.text("Council of May"));
-        meta.title(Component.text("Building a Maypole"));
-        meta.pages(pages);
-        ItemMarker.setId(meta, MaypolePlugin.BOOK_ID);
-        item.setItemMeta(meta);
+        item.editMeta(m -> {
+                if (m instanceof BookMeta meta) {
+                    meta.setGeneration(BookMeta.Generation.ORIGINAL);
+                    meta.author(text("Council of May"));
+                    meta.title(text("Building a Maypole"));
+                    meta.pages(pages);
+                }
+            });
         return item;
     }
 }

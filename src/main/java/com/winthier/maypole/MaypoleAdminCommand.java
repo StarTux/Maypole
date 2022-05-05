@@ -41,11 +41,11 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
             .completers(CommandArgCompleter.NULL)
             .description("List collectibles")
             .senderCaller(this::collectiblesList);
-        collectibles.addChild("unlock").arguments("<player> <collectible>")
+        collectibles.addChild("give").arguments("<player> <collectible>")
             .completers(CommandArgCompleter.NULL,
                         CommandArgCompleter.enumLowerList(Collectible.class))
             .description("Unlock collectible")
-            .senderCaller(this::collectiblesUnlock);
+            .senderCaller(this::collectiblesGive);
         collectibles.addChild("all").arguments("<player>")
             .completers(CommandArgCompleter.NULL)
             .description("Unlock all collectibles")
@@ -115,7 +115,7 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
         return true;
     }
 
-    private boolean collectiblesUnlock(CommandSender sender, String[] args) {
+    private boolean collectiblesGive(CommandSender sender, String[] args) {
         if (args.length != 2) return false;
         PlayerCache target = PlayerCache.require(args[0]);
         Collectible collectible = Collectible.require(args[1]);

@@ -1,6 +1,8 @@
 package com.winthier.maypole;
 
 import com.cavetale.core.util.Json;
+import com.cavetale.mytems.Mytems;
+import com.cavetale.mytems.MytemsPlugin;
 import com.winthier.maypole.session.Session;
 import com.winthier.maypole.session.Sessions;
 import com.winthier.maypole.sql.Database;
@@ -13,8 +15,6 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Skull;
@@ -29,10 +29,12 @@ import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static net.kyori.adventure.text.format.TextColor.color;
+import static org.bukkit.Particle.*;
+import static org.bukkit.Sound.*;
+import static org.bukkit.SoundCategory.*;
 
 public final class MaypolePlugin extends JavaPlugin {
     protected static final List<BlockFace> SKULL_FACING = List.of(BlockFace.WEST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST);
-    protected static final String BOOK_ID = "maypole:book";
     protected final Random random = new Random();
     protected final MaypoleCommand command = new MaypoleCommand(this);
     protected final MaypoleAdminCommand adminCommand = new MaypoleAdminCommand(this);
@@ -62,6 +64,7 @@ public final class MaypolePlugin extends JavaPlugin {
         maypoleBook.enable();
         sessions.enable();
         loadHighscore();
+        MytemsPlugin.getInstance().registerMytem(this, Mytems.BOOK_OF_MAY, new BookOfMay(this));
     }
 
     @Override
@@ -77,15 +80,14 @@ public final class MaypolePlugin extends JavaPlugin {
             if (giveBook(player)) {
                 session.setHasBook(true);
                 player.sendMessage(text("Here, take this book", GREEN));
-                player.playSound(player.getEyeLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST,
-                                 1.0f, 0.5f);
+                player.playSound(player.getLocation(), ENTITY_FIREWORK_ROCKET_BLAST, MASTER, 1.0f, 0.5f);
             } else {
                 player.sendMessage(text("Your inventory is full", RED));
             }
         } else {
             if (tag.enabled) {
                 player.openBook(maypoleBook.makeBook(session));
-                player.playSound(player.getEyeLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1.0f, 0.6f);
+                player.playSound(player.getLocation(), BLOCK_DISPENSER_DISPENSE, MASTER, 1.0f, 0.6f);
             }
             int completions = session.getCompletions();
             if (completions == 1) {
@@ -119,14 +121,14 @@ public final class MaypolePlugin extends JavaPlugin {
                              + ": " + roll + "/" + chance);
         }
         if (roll > chance) {
-            player.spawnParticle(Particle.CRIT, loc, 32, 0.5, 0.5, 0.5, 0.0);
+            player.spawnParticle(CRIT, loc, 32, 0.5, 0.5, 0.5, 0.0);
             return;
         }
         session.give(collectible);
         loadHighscore();
         sendUnlockMessage(player, collectible);
-        block.getWorld().playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 0.20f, 1.5f);
-        block.getWorld().spawnParticle(Particle.FIREWORKS_SPARK, loc, 50, 1.0, 1.0, 1.0, 0.0);
+        block.getWorld().playSound(loc, ENTITY_PLAYER_LEVELUP, MASTER, 0.5f, 1.5f);
+        block.getWorld().spawnParticle(FIREWORKS_SPARK, loc, 50, 1.0, 1.0, 1.0, 0.0);
     }
 
     protected void sendUnlockMessage(Player player, Collectible collectible) {
@@ -165,8 +167,8 @@ public final class MaypolePlugin extends JavaPlugin {
             collectible.mytems.giveItemStack(player, 1);
             serverCommand("mytems give " + player.getName() + " kitty_coin");
         }
-        player.playSound(player.getEyeLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 0.25f, 1.25f);
-        player.sendMessage("You return a complete collection to the Maypole.");
+        player.playSound(player.getLocation(), ENTITY_ENDER_DRAGON_DEATH, MASTER, 0.25f, 1.25f);
+        player.sendMessage(text("You return a complete collection to the Maypole!", MAYPOLE_YELLOW));
         return true;
     }
 
@@ -208,8 +210,7 @@ public final class MaypolePlugin extends JavaPlugin {
                         Vector v = playerLocation.toVector().multiply(p)
                             .add(blockLocation.toVector().multiply(1.0 - p));
                         Location loc = v.toLocation(playerLocation.getWorld(), 0f, 0f);
-                        playerLocation.getWorld().spawnParticle(Particle.SPELL_MOB, loc, 1,
-                                                                0.5, 0.5, 0.5, -1f);
+                        playerLocation.getWorld().spawnParticle(SPELL_MOB, loc, 1, 0.5, 0.5, 0.5, -1f);
                     }
                 }.runTaskTimer(this, 1, 1);
                 placed = true;
@@ -219,10 +220,7 @@ public final class MaypolePlugin extends JavaPlugin {
     }
 
     protected boolean giveBook(Player player) {
-        Session session = sessions.get(player);
-        if (session == null || !session.isEnabled()) return false;
-        ItemStack book = maypoleBook.makeBook(session);
-        return player.getInventory().addItem(book).isEmpty();
+        return player.getInventory().addItem(Mytems.BOOK_OF_MAY.createItemStack()).isEmpty();
     }
 
     public boolean openBook(Player player) {
@@ -230,6 +228,7 @@ public final class MaypolePlugin extends JavaPlugin {
         if (session == null || !session.isEnabled()) return false;
         ItemStack book = maypoleBook.makeBook(session);
         player.openBook(book);
+        player.playSound(player.getLocation(), ITEM_BOOK_PAGE_TURN, MASTER, 2.0f, 1.5f);
         return true;
     }
 
