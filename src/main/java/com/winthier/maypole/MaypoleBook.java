@@ -31,7 +31,7 @@ public final class MaypoleBook {
     private static final int TOC_OFFSET = 3;
     private static final Component[] INTRODUCTION = new Component[] {
         text("Spring has sprung, my friends, and this month, it is finally time to celebrate the obligatory May Festival."),
-        text("Aside from music, dancing, and free beer, by far the most important tradition thereof is the construction of the Maypole."),
+        text("Aside from music, dancing, and free drinks, by far the most important tradition thereof is the construction of the Maypole."),
         join(noSeparators(),
              text("For this task however, we require the cooperation of every able-bodied man, woman, and child, in the "),
              text("Mining Worlds", DARK_BLUE, UNDERLINED),

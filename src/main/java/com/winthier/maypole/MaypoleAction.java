@@ -71,7 +71,7 @@ public enum MaypoleAction {
                            "However, you only need to take care of the easy part. Find its seeds in the taller grass of a snowy area, and you're good to go.");
         }
     },
-    PICK_SNOW(Type.BLOCK_BREAK, Material.GRASS, Material.SNOW) {
+    PICK_SNOW(Type.BLOCK_BREAK, Material.SNOW) {
         @Override public List<String> getBookPages() {
             return List.of("This one requires devilishly low temperatures to blossom. Even the slightest warm breeze could ruin months of care.",
                            "Your best bet will be to dig up some snow, hoping to find a patch which conserved a pristine exemplar.");
@@ -216,6 +216,12 @@ public enum MaypoleAction {
         @Override public List<String> getBookPages() {
             return List.of("They usually fall of the trees and find their ways to the ground, where they turn to podzol over time.",
                            "I would bet my favorite walking stick that some survive this journey intact, however.");
+        }
+    },
+    PICK_BERRY_BUSH(Type.BLOCK_BREAK, Material.SWEET_BERRY_BUSH) {
+        @Override public List<String> getBookPages() {
+            return List.of("This one likes to tumble down and get caught up in the undergrowth. Specifically, inside sweet berry bushes.",
+                           "You're going to have to break some of those. If you would, bring me some of the berries as well, but it's not a priority; just a personal request.");
         }
     },
     PICK_MOSSY_STONE(Type.BLOCK_BREAK,

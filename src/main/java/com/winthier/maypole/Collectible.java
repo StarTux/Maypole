@@ -14,7 +14,7 @@ public enum Collectible {
                            "Its potential for an effective deodorant must be enormous. However, we only care about its visual appeal, which is just perfect for the Maypole!");
         }
     },
-    PINE_CONE(Mytems.PINE_CONE, PICK_TAIGA_SPRUCE_LEAVES, PICK_PODZOL) {
+    PINE_CONE(Mytems.PINE_CONE, PICK_TAIGA_SPRUCE_LEAVES, PICK_PODZOL, PICK_BERRY_BUSH) {
         @Override public List<String> getBookPages() {
             return List.of("This funny looking cone falls of the fir tree to carry its seed far away. Some people love to dry them and build small figurines with them. You may see where this is going.");
         }
