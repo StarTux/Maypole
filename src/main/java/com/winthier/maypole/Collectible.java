@@ -79,7 +79,7 @@ public enum Collectible {
             return List.of("You may have heard that mosquitoes sometimes get frozen in Amber, to be conserved for millions of years.");
         }
     },
-    CLUMP_OF_MOSS(Mytems.CLUMP_OF_MOSS, PICK_MOSSY_STONE, PICK_GLOW_LICHEN) {
+    CLUMP_OF_MOSS(Mytems.CLUMP_OF_MOSS, PICK_MOSSY_STONE, PICK_GLOW_LICHEN, PICK_MOSS) {
         @Override public List<String> getBookPages() {
             return List.of("Moss loves dark and moist spaces, so the woods are bound to be lousy with them.");
         }

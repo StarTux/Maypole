@@ -242,6 +242,11 @@ public enum MaypoleAction {
             return List.of("Naturally, this growth lights up the darkest of caves. Go cave diving and scrape off some glow lichen, and you're sure find some in no time.");
         }
     },
+    PICK_MOSS(Type.BLOCK_BREAK, Material.MOSS_BLOCK, Material.MOSS_CARPET) {
+        @Override public List<String> getBookPages() {
+            return List.of("Try to find it inside some moss. Both the full moss block and the moss carpet will occasionaly have it.");
+        }
+    },
     PICK_SWAMP_BROWN_MUSHROOM(Type.BLOCK_BREAK, Material.BROWN_MUSHROOM) {
         @Override public boolean checkBlock(Block block) {
             return block.getBiome().name().contains("SWAMP");
