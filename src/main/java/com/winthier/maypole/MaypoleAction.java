@@ -63,7 +63,7 @@ public enum MaypoleAction {
     },
     PICK_COLD_TALL_GRASS(Type.BLOCK_BREAK, Material.GRASS, Material.TALL_GRASS) {
         @Override public boolean checkBlock(Block block) {
-            return block.getTemperature() < 0.2;
+            return block.getTemperature() <= 0.2;
         }
 
         @Override public List<String> getBookPages() {
@@ -195,7 +195,7 @@ public enum MaypoleAction {
     },
     PICK_COLD_COARSE_DIRT(Type.BLOCK_BREAK, Material.COARSE_DIRT) {
         @Override public boolean checkBlock(Block block) {
-            return block.getTemperature() < 0.2;
+            return block.getTemperature() <= 0.3;
         }
 
         @Override public List<String> getBookPages() {
