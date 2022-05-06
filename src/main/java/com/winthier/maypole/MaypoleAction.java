@@ -148,8 +148,8 @@ public enum MaypoleAction {
     },
     PICK_MESA_CACTUS(Type.BLOCK_BREAK, Material.CACTUS) {
         @Override public boolean checkBlock(Block block) {
-            return block.getBiome().name().contains("MESA")
-                && block.getRelative(0, -1, 0).getType() != Material.RED_SAND;
+            return block.getBiome().name().contains("BADLANDS")
+                && block.getRelative(0, -1, 0).getType() != Material.CACTUS;
         }
 
         @Override public List<String> getBookPages() {
