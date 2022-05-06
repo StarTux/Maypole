@@ -34,8 +34,8 @@ public final class Highscore {
                     int lastScore = -1;
                     int nextPlacement = 0;
                     for (SQLPlayer row : ls) {
-                        if (lastScore != row.getCompletions()) {
-                            lastScore = row.getCompletions();
+                        if (lastScore != row.getCollectibles()) {
+                            lastScore = row.getCollectibles();
                             nextPlacement += 1;
                         }
                         list.add(new Highscore(nextPlacement, row));

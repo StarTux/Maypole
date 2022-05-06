@@ -151,6 +151,7 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
         plugin.sessions.apply(target.uuid, session -> {
                 session.give(collectible);
                 sender.sendMessage(text(collectible + " unlocked for " + target.name, AQUA));
+                plugin.loadHighscore();
             });
         return true;
     }
@@ -167,6 +168,7 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
                     }
                 }
                 sender.sendMessage(text(count + " collectibles unlocked for " + target.name, AQUA));
+                plugin.loadHighscore();
             });
         return true;
     }

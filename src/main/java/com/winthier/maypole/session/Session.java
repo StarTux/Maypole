@@ -33,8 +33,12 @@ public final class Session {
             list.add(new SQLCollectible(uuid, it));
         }
         database().insertIgnoreAsync(list, null);
-        database().find(SQLPlayer.class).findUniqueAsync(row -> playerRow = row);
-        database().find(SQLCollectible.class).findListAsync(rows -> {
+        database().find(SQLPlayer.class)
+            .eq("uuid", uuid)
+            .findUniqueAsync(row -> playerRow = row);
+        database().find(SQLCollectible.class)
+            .eq("player", uuid)
+            .findListAsync(rows -> {
                 for (SQLCollectible row : rows) {
                     collectibleRows.put(row.getCollectible(), row);
                     if (!row.getMaypoleAction().isValid()) {

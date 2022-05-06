@@ -21,6 +21,8 @@ import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.JoinConfiguration.separator;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
+import static net.kyori.adventure.text.format.TextDecoration.*;
 
 @RequiredArgsConstructor @Getter
 public final class BookOfMay implements Mytem {
@@ -43,6 +45,7 @@ public final class BookOfMay implements Mytem {
                                 text("May", MAYPOLE_YELLOW));
         List<Component> lore = new ArrayList<>();
         lore.add(displayName);
+        lore.add(text(2022, DARK_GRAY, ITALIC));
         lore.addAll(wrapLore(tiny(description.toLowerCase()), c -> c.color(MAYPOLE_BLUE)));
         prototype = new ItemStack(getKey().material);
         prototype.editMeta(meta -> {

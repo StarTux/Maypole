@@ -153,7 +153,7 @@ public final class MaypolePlugin extends JavaPlugin {
         // Is in correct world?
         if (!player.getWorld().getName().equals(tag.pole.world)) return false;
         Session session = sessions.get(player);
-        if (session == null || session.isEnabled()) return false;
+        if (session == null || !session.isEnabled()) return false;
         // Has all collectibles?
         for (Collectible collectible: Collectible.values()) {
             if (!session.has(collectible)) {
@@ -176,8 +176,9 @@ public final class MaypolePlugin extends JavaPlugin {
             Collectible[] collectibles = Collectible.values();
             Collectible collectible = collectibles[random.nextInt(collectibles.length)];
             collectible.mytems.giveItemStack(player, 1);
-            serverCommand("mytems give " + player.getName() + " kitty_coin");
+            Mytems.KITTY_COIN.giveItemStack(player, 1);
         }
+        loadHighscore();
         player.playSound(player.getLocation(), ENTITY_ENDER_DRAGON_DEATH, MASTER, 0.25f, 1.25f);
         player.sendMessage(text("You return a complete collection to the Maypole!", MAYPOLE_YELLOW));
         return true;
@@ -248,7 +249,7 @@ public final class MaypolePlugin extends JavaPlugin {
     }
 
     protected void saveTag() {
-        Json.save(new File(getDataFolder(), "save.json"), tag);
+        Json.save(new File(getDataFolder(), "save.json"), tag, true);
     }
 
     protected void loadHighscore() {
