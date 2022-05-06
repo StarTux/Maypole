@@ -243,6 +243,10 @@ public enum MaypoleAction {
         }
     },
     PICK_SWAMP_BROWN_MUSHROOM(Type.BLOCK_BREAK, Material.BROWN_MUSHROOM) {
+        @Override public boolean checkBlock(Block block) {
+            return block.getBiome().name().contains("SWAMP");
+        }
+
         @Override public List<String> getBookPages() {
             return List.of("It looks just like any other brown mushroom you can find in the swamps, but trust me.",
                            "Once you sink your teeth into one of these, you will be spoiled forever! We promise to save as many as possible for the Maypole.");
