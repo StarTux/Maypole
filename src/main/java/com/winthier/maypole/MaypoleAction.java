@@ -180,7 +180,9 @@ public enum MaypoleAction {
     },
     BUCKET_BEACH_WATER(Type.BUCKET_FILL, Material.WATER) {
         @Override public boolean checkBlock(Block block) {
-            return block.getBiome().name().contains("BEACH");
+            String biome = block.getBiome().name();
+            return biome.contains("BEACH")
+                || biome.contains("SHORE");
         }
 
         @Override public List<String> getBookPages() {
