@@ -98,9 +98,6 @@ public final class MaypolePlugin extends JavaPlugin {
                                         text(completions, WHITE),
                                         text(" times")));
             }
-            if (completions > 0) {
-                command.highscore(player);
-            }
         }
     }
 
