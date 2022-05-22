@@ -1,5 +1,6 @@
 package com.winthier.maypole.sql;
 
+import com.winthier.sql.SQLRow;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -7,7 +8,7 @@ import javax.persistence.Table;
 import lombok.Data;
 
 @Data @Table(name = "players")
-public final class SQLPlayer {
+public final class SQLPlayer implements SQLRow {
     @Id
     protected Integer id;
     @Column(nullable = false, unique = true)

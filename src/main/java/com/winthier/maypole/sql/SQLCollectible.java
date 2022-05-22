@@ -2,6 +2,7 @@ package com.winthier.maypole.sql;
 
 import com.winthier.maypole.Collectible;
 import com.winthier.maypole.MaypoleAction;
+import com.winthier.sql.SQLRow;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -12,7 +13,7 @@ import lombok.Data;
 @Data
 @Table(name = "collections",
        uniqueConstraints = @UniqueConstraint(name = "player_item", columnNames = { "player", "item" }))
-public final class SQLCollectible {
+public final class SQLCollectible implements SQLRow {
     @Id
     protected Integer id;
     @Column(nullable = false)
