@@ -38,7 +38,7 @@ public final class MaypoleCommand extends AbstractCommand<MaypolePlugin> {
     }
 
     protected void highscore(CommandSender sender) {
-        sender.sendMessage(join(separator(space()), plugin.maypoleTitle, text("Highscore", plugin.MAYPOLE_BLUE)));
+        sender.sendMessage(join(separator(space()), plugin.TITLE, text("Highscore", plugin.MAYPOLE_BLUE)));
         if (sender instanceof Player player) {
             Session session = plugin.sessions.get(player);
             if (session != null && session.isEnabled()) {

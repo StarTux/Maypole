@@ -4,10 +4,18 @@ import com.cavetale.core.command.AbstractCommand;
 import com.cavetale.core.command.CommandArgCompleter;
 import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
+import com.cavetale.fam.trophy.Highscore;
+import com.cavetale.mytems.item.trophy.TrophyCategory;
+import com.winthier.maypole.sql.SQLPlayer;
 import com.winthier.playercache.PlayerCache;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import static com.winthier.maypole.sql.Database.database;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
@@ -35,6 +43,9 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
             .completers(CommandArgCompleter.NULL)
             .description("Enable or disable Maypole")
             .senderCaller(this::enabled);
+        rootNode.addChild("reward").denyTabCompletion()
+            .description("Give rewards to all players")
+            .senderCaller(this::reward);
         CommandNode collectibles = rootNode.addChild("collectibles")
             .description("Collectible subcommands");
         collectibles.addChild("list").arguments("<player>")
@@ -123,6 +134,32 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
                                 text("Maypole enabled: ", AQUA),
                                 text("" + value, value ? GREEN : RED)));
         return true;
+    }
+
+    private void reward(CommandSender sender) {
+        Map<UUID, Integer> collectibles = new HashMap<>();
+        Map<UUID, Integer> completions = new HashMap<>();
+        List<SQLPlayer> list = database().find(SQLPlayer.class).findList();
+        for (SQLPlayer row : list) {
+            if (row.getCollectibles() == 0) continue;
+            collectibles.put(row.getUuid(), row.getCollectibles());
+            completions.put(row.getUuid(), row.getCompletions());
+        }
+        int count = Highscore.reward(collectibles,
+                                     "maypole",
+                                     TrophyCategory.MAYPOLE,
+                                     plugin.TITLE,
+                                     hi -> {
+                                         int collected = collectibles.get(hi.uuid);
+                                         int completed = completions.get(hi.uuid);
+                                         return "You collected "
+                                             + collected + " Maypole ingredient" + (collected == 1 ? "" : "s")
+                                             + (completed > 0
+                                                ? (" and completed "
+                                                   + completed + " collection" + (completed == 1 ? "" : "s"))
+                                                : "");
+                                     });
+        sender.sendMessage(text("Rewarded " + count + " players", AQUA));
     }
 
     private boolean collectiblesList(CommandSender sender, String[] args) {

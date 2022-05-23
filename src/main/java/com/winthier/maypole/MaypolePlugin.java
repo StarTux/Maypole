@@ -44,14 +44,14 @@ public final class MaypolePlugin extends JavaPlugin {
     protected List<Highscore> highscore = List.of();
     public static final TextColor MAYPOLE_YELLOW = color(0xF0E68C);
     public static final TextColor MAYPOLE_BLUE = color(0x87cefa);
-    protected Component maypoleTitle = join(noSeparators(),
-                                            text("M", MAYPOLE_YELLOW),
-                                            text("a", MAYPOLE_BLUE),
-                                            text("y", MAYPOLE_YELLOW),
-                                            text("p", MAYPOLE_BLUE),
-                                            text("o", MAYPOLE_YELLOW),
-                                            text("l", MAYPOLE_BLUE),
-                                            text("e", MAYPOLE_YELLOW));
+    public static final Component TITLE = join(noSeparators(),
+                                               text("M", MAYPOLE_YELLOW),
+                                               text("a", MAYPOLE_BLUE),
+                                               text("y", MAYPOLE_YELLOW),
+                                               text("p", MAYPOLE_BLUE),
+                                               text("o", MAYPOLE_YELLOW),
+                                               text("l", MAYPOLE_BLUE),
+                                               text("e", MAYPOLE_YELLOW));
 
     @Override
     public void onEnable() {
