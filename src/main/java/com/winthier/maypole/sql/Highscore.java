@@ -1,6 +1,6 @@
 package com.winthier.maypole.sql;
 
-import com.winthier.playercache.PlayerCache;
+import com.cavetale.core.playercache.PlayerCache;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;

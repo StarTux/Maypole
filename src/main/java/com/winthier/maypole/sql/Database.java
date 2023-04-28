@@ -11,7 +11,7 @@ public final class Database {
 
     public static void enable(MaypolePlugin plugin) {
         database = new SQLDatabase(plugin);
-        database.registerTables(SQLPlayer.class, SQLCollectible.class);
+        database.registerTables(List.of(SQLPlayer.class, SQLCollectible.class));
         if (!database.createAllTables()) {
             throw new IllegalArgumentException("Database creation failed");
         }

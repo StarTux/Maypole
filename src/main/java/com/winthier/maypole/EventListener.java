@@ -1,9 +1,8 @@
 package com.winthier.maypole;
 
+import com.cavetale.core.event.hud.PlayerHudEvent;
+import com.cavetale.core.event.hud.PlayerHudPriority;
 import com.cavetale.core.font.Unicode;
-import com.cavetale.sidebar.PlayerSidebarEvent;
-import com.cavetale.sidebar.Priority;
-import com.winthier.exploits.Exploits;
 import com.winthier.maypole.session.Session;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -24,6 +23,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import static com.cavetale.core.exploits.PlayerPlacedBlocks.isPlayerPlaced;
 import static com.winthier.maypole.MaypoleAction.*;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
@@ -81,7 +81,7 @@ public final class EventListener implements Listener {
         final Player player = event.getPlayer();
         final Block block = event.getBlock();
         if (!WORLDS.contains(block.getWorld().getName())) return;
-        if (Exploits.isPlayerPlaced(block)) return;
+        if (isPlayerPlaced(block)) return;
         List<MaypoleAction> list = blockActions.get(block.getType());
         if (list != null) {
             for (MaypoleAction action : list) {
@@ -116,7 +116,7 @@ public final class EventListener implements Listener {
         final Player player = event.getPlayer();
         final Block block = event.getBlockClicked();
         if (!WORLDS.contains(block.getWorld().getName())) return;
-        if (Exploits.isPlayerPlaced(block)) return;
+        if (isPlayerPlaced(block)) return;
         List<MaypoleAction> list = blockActions.get(block.getType());
         if (list != null) {
             for (MaypoleAction action : list) {
@@ -139,7 +139,7 @@ public final class EventListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerSidebar(PlayerSidebarEvent event) {
+    public void onPlayerHud(PlayerHudEvent event) {
         if (!plugin.tag.enabled) return;
         Player player = event.getPlayer();
         if (!player.hasPermission("maypole.maypole")) return;
@@ -168,6 +168,6 @@ public final class EventListener implements Listener {
         for (List<Component> components : lines2) {
             lines.add(join(noSeparators(), components));
         }
-        event.add(plugin, Priority.HIGH, lines);
+        event.sidebar(PlayerHudPriority.HIGH, lines);
     }
 }

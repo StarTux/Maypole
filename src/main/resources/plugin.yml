@@ -5,9 +5,9 @@ version: 0.1
 
 description: Maypole Event
 author: StarTux
-api-version: 1.18
+api-version: 1.19
 
-depend: [Core, SQL, PlayerCache, Exploits, Mytems, Sidebar, Fam]
+depend: [Core, SQL, Mytems, Fam]
 
 commands:
   maypole:
