@@ -168,11 +168,8 @@ public final class MaypolePlugin extends JavaPlugin {
         // Dish out prizes for first completion
         if (completions == 0) {
             buildMaypole(player);
-            serverCommand("kite member Maypole2 " + player.getName());
+            serverCommand("kite member Maypole3 " + player.getName());
         } else {
-            Collectible[] collectibles = Collectible.values();
-            Collectible collectible = collectibles[random.nextInt(collectibles.length)];
-            collectible.mytems.giveItemStack(player, 1);
             Mytems.KITTY_COIN.giveItemStack(player, 1);
         }
         loadHighscore();
