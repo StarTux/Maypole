@@ -45,7 +45,7 @@ public final class BookOfMay implements Mytem {
                                 text("May", MAYPOLE_YELLOW));
         List<Component> lore = new ArrayList<>();
         lore.add(displayName);
-        lore.add(text(2022, DARK_GRAY, ITALIC));
+        lore.add(text(2023, DARK_GRAY, ITALIC));
         lore.addAll(wrapLore(tiny(description.toLowerCase()), c -> c.color(MAYPOLE_BLUE)));
         prototype = new ItemStack(getKey().material);
         prototype.editMeta(meta -> {
