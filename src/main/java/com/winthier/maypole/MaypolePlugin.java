@@ -190,9 +190,9 @@ public final class MaypolePlugin extends JavaPlugin {
             poleBlock = poleBlock.getRelative(0, 1, 0);
             if (poleBlock.getType() == Material.AIR) {
                 if ((poleBlock.getY() & 1) == 0) {
-                    poleBlock.setType(Material.STRIPPED_SPRUCE_LOG);
+                    poleBlock.setType(Material.STRIPPED_OAK_LOG);
                 } else {
-                    poleBlock.setType(Material.SPRUCE_LOG);
+                    poleBlock.setType(Material.OAK_LOG);
                 }
             }
             for (BlockFace face: SKULL_FACING) {
