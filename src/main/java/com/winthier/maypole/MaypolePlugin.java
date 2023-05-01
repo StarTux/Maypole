@@ -169,6 +169,8 @@ public final class MaypolePlugin extends JavaPlugin {
         if (completions == 0) {
             buildMaypole(player);
             serverCommand("kite member Maypole3 " + player.getName());
+        } else if (completions == 1) {
+            serverCommand("titles unlockset " + player.getName() + " Blossom");
         } else {
             Mytems.KITTY_COIN.giveItemStack(player, 1);
         }
