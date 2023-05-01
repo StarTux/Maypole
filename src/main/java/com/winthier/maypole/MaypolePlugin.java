@@ -243,6 +243,7 @@ public final class MaypolePlugin extends JavaPlugin {
     }
 
     protected void saveTag() {
+        getDataFolder().mkdirs();
         Json.save(new File(getDataFolder(), "save.json"), tag, true);
     }
 
