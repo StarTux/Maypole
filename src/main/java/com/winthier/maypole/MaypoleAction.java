@@ -256,7 +256,7 @@ public enum MaypoleAction {
         }
 
         @Override public List<String> getBookPages() {
-            return List.of("It looks just like any other brown mushroom you can find in the swamps or the nether, but trust me.",
+            return List.of("It looks just like any other brown mushroom you can find in the swamps or the Nether, but trust me.",
                            "Once you sink your teeth into one of these, you will be spoiled forever! We promise to save as many as possible for the Maypole.");
         }
     },
