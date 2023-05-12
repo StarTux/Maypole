@@ -115,7 +115,9 @@ public final class MaypolePlugin extends JavaPlugin {
 
     private void unlockCollectible(Player player, Session session, Block block, Collectible collectible) {
         int completions = session.getCompletions();
-        double chance = 1.0 / (double) (completions + 1);
+        final int full = 10;
+        int fract = Math.max(1, full - completions);
+        double chance = (double) fract / (double) full;
         double roll = random.nextDouble();
         Location loc = block.getLocation().add(0.5, 0.5, 0.5);
         if (tag.debug) {
