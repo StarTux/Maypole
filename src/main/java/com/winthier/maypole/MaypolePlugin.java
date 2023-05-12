@@ -13,6 +13,7 @@ import java.util.Random;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -65,6 +66,7 @@ public final class MaypolePlugin extends JavaPlugin {
         sessions.enable();
         loadHighscore();
         MytemsPlugin.getInstance().registerMytem(this, Mytems.BOOK_OF_MAY, new BookOfMay(this));
+        Bukkit.getScheduler().runTaskTimer(this, this::loadHighscore, 1200L, 1200L);
     }
 
     @Override
