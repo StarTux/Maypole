@@ -145,7 +145,7 @@ public final class EventListener implements Listener {
         if (!player.hasPermission("maypole.maypole")) return;
         Session session = plugin.sessions.get(player);
         if (session == null || !session.isEnabled()) return;
-        if (session.getCompletions() > 0 && session.getCollectibles() == 0) return;
+        if (session.getCompletions() > 0 && session.getCollectibles() % 16 == 0) return;
         Collectible[] collectibles = Collectible.values();
         final int lineCount = 2;
         final int lineLength = collectibles.length / lineCount;
