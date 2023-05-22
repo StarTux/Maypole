@@ -8,6 +8,7 @@ import com.cavetale.core.playercache.PlayerCache;
 import com.cavetale.fam.trophy.Highscore;
 import com.cavetale.mytems.item.trophy.TrophyCategory;
 import com.winthier.maypole.sql.SQLPlayer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,7 +146,7 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
             collectibles.put(row.getUuid(), row.getCollectibles());
             completions.put(row.getUuid(), row.getCompletions());
         }
-        int count = Highscore.reward(collectibles,
+        int trophies = Highscore.reward(collectibles,
                                      "maypole",
                                      TrophyCategory.MAYPOLE,
                                      plugin.TITLE,
@@ -159,7 +160,21 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
                                                    + completed + " collection" + (completed == 1 ? "" : "s"))
                                                 : "");
                                      });
-        sender.sendMessage(text("Rewarded " + count + " players", AQUA));
+        sender.sendMessage(text("Rewarded " + trophies + " players with trophies", AQUA));
+        com.winthier.maypole.sql.Highscore.list(highscores -> {
+                int maybirds = 0;
+                List<String> names = new ArrayList<>();
+                for (int i = 0; i < 10; i += 1) {
+                    if (i >= highscores.size()) break;
+                    var hi = highscores.get(i);
+                    if (hi.getRow().getCollectibles() == 0) break;
+                    String name = hi.name();
+                    plugin.serverCommand("titles unlockset " + name + " Maybird");
+                    names.add(name);
+                    maybirds += 1;
+                }
+                sender.sendMessage(text("Rewarded " + maybirds + " players with Maybird: " + names, AQUA));
+            });
     }
 
     private boolean collectiblesList(CommandSender sender, String[] args) {
