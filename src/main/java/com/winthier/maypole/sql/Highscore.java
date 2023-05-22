@@ -20,10 +20,7 @@ public final class Highscore {
     }
 
     public Component displayName() {
-        Player player = Bukkit.getPlayer(row.uuid);
-        return player != null
-            ? player.displayName()
-            : text(name());
+        return text(name());
     }
 
     public static void list(Consumer<List<Highscore>> callback) {
