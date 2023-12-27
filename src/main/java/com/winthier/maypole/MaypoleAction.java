@@ -61,7 +61,7 @@ public enum MaypoleAction {
             return List.of("However I firmly believe that some poppies are more than meets the eye. Picking some of them will reveal the truth.");
         }
     },
-    PICK_COLD_TALL_GRASS(Type.BLOCK_BREAK, Material.GRASS, Material.TALL_GRASS) {
+    PICK_COLD_TALL_GRASS(Type.BLOCK_BREAK, Material.SHORT_GRASS, Material.TALL_GRASS) {
         @Override public boolean checkBlock(Block block) {
             return block.getTemperature() <= 0.2;
         }
