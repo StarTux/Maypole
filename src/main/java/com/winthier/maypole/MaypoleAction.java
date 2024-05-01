@@ -3,7 +3,9 @@ package com.winthier.maypole;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.World.Environment;
@@ -172,7 +174,7 @@ public enum MaypoleAction {
             return List.of("The trick is to find the pretty small ones, still attached to the vines. Some of the weeping vines you encounter in the Nether might still carry them.");
         }
     },
-    PICK_CORAL(Type.BLOCK_BREAK, List.of(Tag.CORAL_BLOCKS, Tag.CORAL_PLANTS, Tag.CORALS, Tag.WALL_CORALS)) {
+    PICK_CORAL(Type.BLOCK_BREAK, () -> List.of(Tag.CORAL_BLOCKS, Tag.CORAL_PLANTS, Tag.CORALS, Tag.WALL_CORALS)) {
         @Override public List<String> getBookPages() {
             return List.of("The only place protected from various colorful predators are coral reefs.",
                            "Hammer on those for a bit and you will strike gold! Keep in mind that they have to be alive.");
@@ -343,8 +345,8 @@ public enum MaypoleAction {
         this(type, Set.of(), Set.of(entityTypes));
     }
 
-    MaypoleAction(final Type type, final List<Tag<Material>> tags) {
-        this(type, sets(tags), Set.of());
+    MaypoleAction(final Type type, final Supplier<List<Tag<Material>>> tags) {
+        this(type, (Bukkit.getServer() != null ? sets(tags.get()) : Set.of()), Set.of());
     }
 
     public abstract List<String> getBookPages();

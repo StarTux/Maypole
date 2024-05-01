@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import lombok.Value;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import static net.kyori.adventure.text.Component.text;
 
 @Value
