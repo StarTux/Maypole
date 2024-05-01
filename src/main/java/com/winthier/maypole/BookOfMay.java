@@ -2,7 +2,6 @@ package com.winthier.maypole;
 
 import com.cavetale.mytems.Mytem;
 import com.cavetale.mytems.Mytems;
-import com.cavetale.mytems.util.Items;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -14,6 +13,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import static com.cavetale.core.font.Unicode.tiny;
+import static com.cavetale.mytems.util.Items.tooltip;
 import static com.cavetale.mytems.util.Text.wrapLore;
 import static com.winthier.maypole.MaypolePlugin.MAYPOLE_BLUE;
 import static com.winthier.maypole.MaypolePlugin.MAYPOLE_YELLOW;
@@ -49,7 +49,7 @@ public final class BookOfMay implements Mytem {
         lore.addAll(wrapLore(tiny(description.toLowerCase()), c -> c.color(MAYPOLE_BLUE)));
         prototype = new ItemStack(getKey().material);
         prototype.editMeta(meta -> {
-                Items.text(meta, lore);
+                tooltip(meta, lore);
                 getKey().markItemMeta(meta);
             });
     }
