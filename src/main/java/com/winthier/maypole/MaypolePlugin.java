@@ -28,6 +28,7 @@ import org.bukkit.util.Vector;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.event.ClickEvent.runCommand;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static net.kyori.adventure.text.format.TextColor.color;
 import static org.bukkit.Particle.*;
@@ -145,7 +146,10 @@ public final class MaypolePlugin extends JavaPlugin {
                                  collectible.mytems.component,
                                  text(" " + collectible.nice, GREEN));
         player.sendActionBar(message);
-        player.sendMessage(message);
+        final String cmd = "/maypole book";
+        player.sendMessage(message
+                           .hoverEvent(text(cmd, GRAY))
+                           .clickEvent(runCommand(cmd)));
         player.showTitle(Title.title(collectible.mytems.component, Component.text(collectible.nice)));
     }
 
