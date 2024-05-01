@@ -83,7 +83,7 @@ public final class MaypoleBook {
         }
         List<Component> tocs = new ArrayList<>();
         TextComponent.Builder toc = text();
-        toc.append(text("Maypole 2023", DARK_BLUE, BOLD));
+        toc.append(text("Maypole 2024", DARK_BLUE, BOLD));
         toc.append(newline());
         toc.append(newline());
         Collectible[] collectibles = Collectible.values();
