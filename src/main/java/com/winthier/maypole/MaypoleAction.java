@@ -369,7 +369,7 @@ public enum MaypoleAction {
             return block.getTemperature() < 0.201;
         }
     },
-    FISH_JUNGLE(Type.BLOCK_BREAK, Material.SALMON) {
+    FISH_JUNGLE(Type.FISHING, Material.SALMON) {
         @Override public List<String> getBookPages() {
             return List.of("This one is found near pools of water in the densely overgrown jungle. Go catch some fish there and you should be able to wrestle some out of its fins.");
         }
