@@ -4,10 +4,13 @@ import com.cavetale.core.command.AbstractCommand;
 import com.cavetale.core.command.CommandArgCompleter;
 import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
+import com.cavetale.core.connect.Connect;
 import com.cavetale.core.playercache.PlayerCache;
 import com.cavetale.fam.trophy.Highscore;
 import com.cavetale.mytems.item.trophy.TrophyCategory;
+import com.winthier.maypole.sql.Database;
 import com.winthier.maypole.sql.SQLPlayer;
+import com.winthier.maypole.sql.SQLSetting;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,8 +43,8 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
             .completers(CommandArgCompleter.NULL)
             .description("Test complete ingredient return")
             .senderCaller(this::testReturn);
-        rootNode.addChild("enabled").arguments("true|false")
-            .completers(CommandArgCompleter.NULL)
+        rootNode.addChild("enabled").arguments("[true|false]")
+            .completers(CommandArgCompleter.BOOLEAN)
             .description("Enable or disable Maypole")
             .senderCaller(this::enabled);
         rootNode.addChild("reward").denyTabCompletion()
@@ -122,18 +125,28 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
     }
 
     private boolean enabled(CommandSender sender, String[] args) {
-        if (args.length != 1) return false;
-        boolean value;
-        try {
-            value = Boolean.parseBoolean(args[0]);
-        } catch (IllegalArgumentException iae) {
-            throw new CommandWarn("Boolean expected: " + args[0]);
+        if (args.length == 0) {
+            if (plugin.isMaypoleEnabled()) {
+                sender.sendMessage(text("Maypole is enabled", GREEN));
+            } else {
+                sender.sendMessage(text("Maypole is disabled", RED));
+            }
+            return true;
         }
-        plugin.tag.enabled = value;
-        plugin.saveTag();
-        sender.sendMessage(join(noSeparators(),
-                                text("Maypole enabled: ", AQUA),
-                                text("" + value, value ? GREEN : RED)));
+        if (args.length != 1) return false;
+        final boolean value = CommandArgCompleter.requireBoolean(args[0]);
+        final SQLSetting newRow = new SQLSetting("enabled", "" + value);
+        Database.getDatabase().saveAsync(newRow, result -> {
+                if (result == 0) {
+                    sender.sendMessage(text("Something went wrong while saving to database, see console: " + result, RED));
+                    return;
+                }
+                Connect.get().broadcastMessage("Maypole", "ReloadSettings");
+                plugin.loadSettings();
+                sender.sendMessage(join(noSeparators(),
+                                        text("Maypole enabled: ", AQUA),
+                                        text("" + value, value ? GREEN : RED)));
+            });
         return true;
     }
 

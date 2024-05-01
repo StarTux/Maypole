@@ -7,9 +7,11 @@ import com.winthier.maypole.session.Session;
 import com.winthier.maypole.session.Sessions;
 import com.winthier.maypole.sql.Database;
 import com.winthier.maypole.sql.Highscore;
+import com.winthier.maypole.sql.SQLSetting;
 import java.io.File;
 import java.util.List;
 import java.util.Random;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
@@ -35,6 +37,7 @@ import static org.bukkit.Particle.*;
 import static org.bukkit.Sound.*;
 import static org.bukkit.SoundCategory.*;
 
+@Getter
 public final class MaypolePlugin extends JavaPlugin {
     protected static final List<BlockFace> SKULL_FACING = List.of(BlockFace.WEST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST);
     protected final Random random = new Random();
@@ -43,6 +46,8 @@ public final class MaypolePlugin extends JavaPlugin {
     protected final MaypoleBook maypoleBook = new MaypoleBook(this);
     protected final Sessions sessions = new Sessions(this);
     protected Tag tag;
+    private List<SQLSetting> settings = List.of();
+    private boolean maypoleEnabled;
     protected List<Highscore> highscore = List.of();
     public static final TextColor MAYPOLE_YELLOW = color(0xF0E68C);
     public static final TextColor MAYPOLE_BLUE = color(0x87cefa);
@@ -68,6 +73,7 @@ public final class MaypolePlugin extends JavaPlugin {
         loadHighscore();
         MytemsPlugin.getInstance().registerMytem(this, Mytems.BOOK_OF_MAY, new BookOfMay(this));
         Bukkit.getScheduler().runTaskTimer(this, this::loadHighscore, 1200L, 1200L);
+        loadSettings();
     }
 
     @Override
@@ -75,11 +81,29 @@ public final class MaypolePlugin extends JavaPlugin {
         Database.disable(this);
     }
 
+    protected void loadSettings() {
+        Database.getDatabase().find(SQLSetting.class).findListAsync(list -> {
+                this.settings = List.copyOf(list);
+                maypoleEnabled = false;
+                for (SQLSetting it : settings) {
+                    switch (it.getName()) {
+                    case "enabled":
+                        maypoleEnabled = it.getValue().equals("true");
+                        break;
+                    default:
+                        getLogger().warning("Unknown setting: " + it);
+                        break;
+                    }
+                }
+                getLogger().info("Maypole " + (maypoleEnabled ? "enabled" : "disabled"));
+            });
+    }
+
     protected void interact(Player player) {
-        if (tag.enabled && playerReturns(player)) return;
+        if (maypoleEnabled && playerReturns(player)) return;
         Session session = sessions.get(player);
         if (session == null || !session.isEnabled()) return;
-        if (tag.enabled && !session.hasBook()) {
+        if (maypoleEnabled && !session.hasBook()) {
             if (giveBook(player)) {
                 session.setHasBook(true);
                 player.sendMessage(text("Here, take this book", GREEN));
@@ -88,7 +112,7 @@ public final class MaypolePlugin extends JavaPlugin {
                 player.sendMessage(text("Your inventory is full", RED));
             }
         } else {
-            if (tag.enabled) {
+            if (maypoleEnabled) {
                 player.openBook(maypoleBook.makeBook(session));
                 player.playSound(player.getLocation(), BLOCK_DISPENSER_DISPENSE, MASTER, 1.0f, 0.6f);
             }

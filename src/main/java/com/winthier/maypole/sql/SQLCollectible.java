@@ -14,11 +14,11 @@ import lombok.Data;
 @Name("collections")
 @UniqueKey({"player", "item"})
 public final class SQLCollectible implements SQLRow {
-    @Id protected Integer id;
-    protected UUID player;
-    @VarChar(31) protected String item;
-    @VarChar(255) protected String action;
-    protected boolean has;
+    @Id private Integer id;
+    private UUID player;
+    @VarChar(31) private String item;
+    @VarChar(255) private String action;
+    private boolean has;
     private transient MaypoleAction maypoleAction;
 
     public SQLCollectible() { }

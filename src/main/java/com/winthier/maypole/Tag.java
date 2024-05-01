@@ -5,7 +5,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 
 public final class Tag {
-    protected boolean enabled = false;
     protected boolean debug = false;
     protected Pole pole = new Pole();
 

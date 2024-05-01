@@ -14,7 +14,7 @@ public final class Highscore {
     public final SQLPlayer row;
 
     public String name() {
-        return PlayerCache.nameForUuid(row.uuid);
+        return PlayerCache.nameForUuid(row.getUuid());
     }
 
     public Component displayName() {

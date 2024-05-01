@@ -31,7 +31,7 @@ public final class MaypoleCommand extends AbstractCommand<MaypolePlugin> {
     }
 
     private void book(Player player) {
-        if (!plugin.tag.enabled) throw new CommandWarn("It is not Maypole season yet!");
+        if (!plugin.isMaypoleEnabled()) throw new CommandWarn("It is not Maypole season yet!");
         if (!plugin.openBook(player)) {
             throw new CommandWarn("Please try again later");
         }

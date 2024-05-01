@@ -1,5 +1,6 @@
 package com.winthier.maypole;
 
+import com.cavetale.core.event.connect.ConnectMessageEvent;
 import com.cavetale.core.event.hud.PlayerHudEvent;
 import com.cavetale.core.event.hud.PlayerHudPriority;
 import com.cavetale.core.font.Unicode;
@@ -77,7 +78,7 @@ public final class EventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     private void onBlockBreak(BlockBreakEvent event) {
-        if (!plugin.tag.enabled) return;
+        if (!plugin.isMaypoleEnabled()) return;
         final Player player = event.getPlayer();
         final Block block = event.getBlock();
         if (!WORLDS.contains(block.getWorld().getName())) return;
@@ -94,7 +95,7 @@ public final class EventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
-        if (!plugin.tag.enabled) return;
+        if (!plugin.isMaypoleEnabled()) return;
         LivingEntity entity = event.getEntity();
         if (!WORLDS.contains(entity.getWorld().getName())) return;
         List<MaypoleAction> list = entityActions.get(entity.getType());
@@ -112,7 +113,7 @@ public final class EventListener implements Listener {
 
     @EventHandler(priority  = EventPriority.HIGHEST)
     public void onPlayerBucketFill(PlayerBucketFillEvent event) {
-        if (!plugin.tag.enabled) return;
+        if (!plugin.isMaypoleEnabled()) return;
         final Player player = event.getPlayer();
         final Block block = event.getBlockClicked();
         if (!WORLDS.contains(block.getWorld().getName())) return;
@@ -129,7 +130,7 @@ public final class EventListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!plugin.tag.enabled) return;
+        if (!plugin.isMaypoleEnabled()) return;
         if (event.getHand() == HAND && event.getAction() == RIGHT_CLICK_BLOCK
             && event.hasBlock() && plugin.tag.pole.isAt(event.getClickedBlock())) {
             plugin.interact(event.getPlayer());
@@ -140,7 +141,7 @@ public final class EventListener implements Listener {
 
     @EventHandler
     public void onPlayerHud(PlayerHudEvent event) {
-        if (!plugin.tag.enabled) return;
+        if (!plugin.isMaypoleEnabled()) return;
         Player player = event.getPlayer();
         if (!player.hasPermission("maypole.maypole")) return;
         Session session = plugin.sessions.get(player);
@@ -170,5 +171,22 @@ public final class EventListener implements Listener {
             lines.add(join(noSeparators(), components));
         }
         event.sidebar(PlayerHudPriority.HIGH, lines);
+    }
+
+    @EventHandler
+    private void onConnectMessage(ConnectMessageEvent event) {
+        if (!"Maypole".equals(event.getChannel())) return;
+        if (event.getPayload() == null) {
+            plugin.getLogger().severe("Unknown message received: " + event.getPayload());
+            return;
+        }
+        switch (event.getPayload()) {
+        case "ReloadSettings":
+            plugin.loadSettings();
+            plugin.getLogger().info("ReloadSettings received");
+            break;
+        default:
+            plugin.getLogger().warning("Unknown message received: " + event.getPayload());
+        }
     }
 }

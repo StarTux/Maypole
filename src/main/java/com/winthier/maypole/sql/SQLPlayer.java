@@ -10,11 +10,11 @@ import lombok.Data;
 @NotNull
 @Name("players")
 public final class SQLPlayer implements SQLRow {
-    @Id protected Integer id;
-    @Unique protected UUID uuid;
-    protected int collectibles;
-    protected int completions;
-    protected boolean hasBook;
+    @Id private Integer id;
+    @Unique private UUID uuid;
+    private int collectibles;
+    private int completions;
+    private boolean hasBook;
 
     public SQLPlayer() { }
 

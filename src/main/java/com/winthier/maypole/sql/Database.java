@@ -6,12 +6,15 @@ import com.winthier.sql.SQLRow;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import lombok.Getter;
 
 public final class Database {
-    protected static SQLDatabase database;
+    @Getter protected static SQLDatabase database;
 
     public static List<Class<? extends SQLRow>> getDatabaseClasses() {
-        return List.of(SQLPlayer.class, SQLCollectible.class);
+        return List.of(SQLPlayer.class,
+                       SQLCollectible.class,
+                       SQLSetting.class);
     }
 
     public static void enable(MaypolePlugin plugin) {
