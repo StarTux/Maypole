@@ -3,26 +3,21 @@ package com.winthier.maypole.sql;
 import com.winthier.maypole.Collectible;
 import com.winthier.maypole.MaypoleAction;
 import com.winthier.sql.SQLRow;
+import com.winthier.sql.SQLRow.Name;
+import com.winthier.sql.SQLRow.NotNull;
+import com.winthier.sql.SQLRow.UniqueKey;
 import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import lombok.Data;
 
 @Data
-@Table(name = "collections",
-       uniqueConstraints = @UniqueConstraint(name = "player_item", columnNames = { "player", "item" }))
+@NotNull
+@Name("collections")
+@UniqueKey({"player", "item"})
 public final class SQLCollectible implements SQLRow {
-    @Id
-    protected Integer id;
-    @Column(nullable = false)
+    @Id protected Integer id;
     protected UUID player;
-    @Column(nullable = false, length = 31)
-    protected String item;
-    @Column(nullable = false, length = 255)
-    protected String action;
-    @Column(nullable = false)
+    @VarChar(31) protected String item;
+    @VarChar(255) protected String action;
     protected boolean has;
     private transient MaypoleAction maypoleAction;
 

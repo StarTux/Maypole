@@ -2,6 +2,7 @@ package com.winthier.maypole.sql;
 
 import com.winthier.maypole.MaypolePlugin;
 import com.winthier.sql.SQLDatabase;
+import com.winthier.sql.SQLRow;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -9,9 +10,13 @@ import java.util.function.Consumer;
 public final class Database {
     protected static SQLDatabase database;
 
+    public static List<Class<? extends SQLRow>> getDatabaseClasses() {
+        return List.of(SQLPlayer.class, SQLCollectible.class);
+    }
+
     public static void enable(MaypolePlugin plugin) {
         database = new SQLDatabase(plugin);
-        database.registerTables(List.of(SQLPlayer.class, SQLCollectible.class));
+        database.registerTables(getDatabaseClasses());
         if (!database.createAllTables()) {
             throw new IllegalArgumentException("Database creation failed");
         }
