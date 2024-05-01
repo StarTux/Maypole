@@ -8,7 +8,7 @@ import static com.winthier.maypole.MaypoleAction.*;
 
 @SuppressWarnings("LineLength")
 public enum Collectible {
-    LUCID_LILY(Mytems.LUCID_LILY, PICK_SWAMP_SEAGRASS, PICK_SWAMP_LILY) {
+    LUCID_LILY(Mytems.LUCID_LILY, PICK_SWAMP_SEAGRASS, PICK_SWAMP_LILY, FISH_SWAMP) {
         @Override public List<String> getBookPages() {
             return List.of("Most commonly associated with witches who grow them in the ponds around their huts. Nobody knows what draws them to this flower, but I bet it's the olfactory appeal, however... repulsive you and I may perceive it.",
                            "Its potential for an effective deodorant must be enormous. However, we only care about its visual appeal, which is just perfect for the Maypole!");
@@ -34,7 +34,7 @@ public enum Collectible {
             return List.of("It is a common misconception that they removed the red rose from the game in favor of the common poppy.");
         }
     },
-    FROST_FLOWER(Mytems.FROST_FLOWER, PICK_COLD_TALL_GRASS, PICK_SNOW) {
+    FROST_FLOWER(Mytems.FROST_FLOWER, PICK_COLD_TALL_GRASS, PICK_SNOW, FISH_COLD) {
         @Override public List<String> getBookPages() {
             return List.of("Oh boy, finally we are getting to the good stuff. The frost flower is incredibly tricky to cultivate in your garden.");
         }
@@ -49,7 +49,7 @@ public enum Collectible {
             return List.of("If it seems at this point that we are sending you out just to get your hands burned and prickled, you are mistaken.");
         }
     },
-    PIPE_WEED(Mytems.PIPE_WEED, PICK_JUNGLE_FERN, PICK_JUNGLE_LEAVES, PICK_JUNGLE_VINES) {
+    PIPE_WEED(Mytems.PIPE_WEED, PICK_JUNGLE_FERN, PICK_JUNGLE_LEAVES, PICK_JUNGLE_VINES, FISH_JUNGLE) {
         @Override public List<String> getBookPages() {
             return List.of("Oh, the blissful nights I spent in front of a hot chimney, thanks to Old Toby! I promise you that I will not smoke most of it. It's important for the Maypole festivities.");
         }
@@ -64,12 +64,12 @@ public enum Collectible {
             return List.of("Out of the frying pan, into the... I made that joke already, didn't I? Anyway, this seed is equally hot, if not moreso than the Heat Root (see above). Getting your hands dirty (or burned) is something you may not be able to avoid this time around...");
         }
     },
-    OASIS_WATER(Mytems.OASIS_WATER, BUCKET_DESERT_WATER, PICK_DRIPSTONE) {
+    OASIS_WATER(Mytems.OASIS_WATER, BUCKET_DESERT_WATER, PICK_DRIPSTONE, FISH_DESERT) {
         @Override public List<String> getBookPages() {
             return List.of("Time for a break! We need that water to keep the more delicate exhibits moist, and it doesn't stay fresh for very long. so someone will have to go and fetch some.");
         }
     },
-    CLAMSHELL(Mytems.CLAMSHELL, PICK_CORAL, BUCKET_BEACH_WATER) {
+    CLAMSHELL(Mytems.CLAMSHELL, PICK_CORAL, BUCKET_BEACH_WATER, FISH_BEACH) {
         @Override public List<String> getBookPages() {
             return List.of("Susie sells seashells by the seashore. These clams are the remains of shellfish and once they're abandoned, they sink to the ground.");
         }

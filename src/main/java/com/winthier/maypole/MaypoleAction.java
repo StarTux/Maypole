@@ -65,7 +65,7 @@ public enum MaypoleAction {
     },
     PICK_COLD_TALL_GRASS(Type.BLOCK_BREAK, Material.SHORT_GRASS, Material.TALL_GRASS) {
         @Override public boolean checkBlock(Block block) {
-            return block.getTemperature() <= 0.2;
+            return block.getTemperature() < 0.21;
         }
 
         @Override public List<String> getBookPages() {
@@ -331,6 +331,53 @@ public enum MaypoleAction {
                            "Go break either of these natural wonders until you get lucky.");
         }
     },
+    FISH_SWAMP(Type.FISHING, Material.SALMON) {
+        @Override public List<String> getBookPages() {
+            return List.of("The swamp is a formidable place to catch some fish, and while you're there, take a closer look at each fish you catch. Sooner or later, one of them will have this item in its mouth.");
+        }
+
+        @Override public boolean checkBlock(Block block) {
+            return block.getBiome().name().contains("SWAMP");
+        }
+    },
+    FISH_DESERT(Type.FISHING, Material.SALMON) {
+        @Override public List<String> getBookPages() {
+            return List.of("I know, the hottest and most sandy of all biomes does not usually come with hugely populated bodies of water, but if you could find such a place and catch a fish there, you will hit the jackpot in no time.");
+        }
+
+        @Override public boolean checkBlock(Block block) {
+            return block.getBiome().name().contains("DESERT");
+        }
+    },
+    FISH_BEACH(Type.FISHING, Material.SALMON) {
+        @Override public List<String> getBookPages() {
+            return List.of("This one is commonly observed near beaches, and the local fish loves to nibble on it. So logically, if you catch a fish, you should find one eventually.");
+        }
+
+        @Override public boolean checkBlock(Block block) {
+            String biome = block.getBiome().name();
+            return biome.contains("BEACH")
+                || biome.contains("SHORE");
+        }
+    },
+    FISH_COLD(Type.FISHING, Material.SALMON) {
+        @Override public List<String> getBookPages() {
+            return List.of("I could tell you countless stories about my ventures into ice fishing. It's an adventure in and of itself each time. Anyway, do that and you can be sure to pull this item out of the icy waters.");
+        }
+
+        @Override public boolean checkBlock(Block block) {
+            return block.getTemperature() < 0.201;
+        }
+    },
+    FISH_JUNGLE(Type.BLOCK_BREAK, Material.SALMON) {
+        @Override public List<String> getBookPages() {
+            return List.of("This one is found near pools of water in the densely overgrown jungle. Go catch some fish there and you should be able to wrestle some out of its fins.");
+        }
+
+        @Override public boolean checkBlock(Block block) {
+            return block.getBiome().name().contains("JUNGLE");
+        }
+    },
     ;
 
     public final Type type;
@@ -371,6 +418,8 @@ public enum MaypoleAction {
         INVALID,
         BLOCK_BREAK,
         BUCKET_FILL,
-        ENTITY_KILL;
+        ENTITY_KILL,
+        FISHING,
+        ;
     }
 }

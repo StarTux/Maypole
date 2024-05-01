@@ -23,6 +23,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import static com.cavetale.core.exploits.PlayerPlacedBlocks.isPlayerPlaced;
 import static com.winthier.maypole.MaypoleAction.*;
@@ -39,6 +40,7 @@ public final class EventListener implements Listener {
     private final MaypolePlugin plugin;
     private final EnumMap<Material, List<MaypoleAction>> blockActions = new EnumMap<>(Material.class);
     private final EnumMap<EntityType, List<MaypoleAction>> entityActions = new EnumMap<>(EntityType.class);
+    private final List<MaypoleAction> fishingActions = new ArrayList<>();
 
     protected void enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -56,21 +58,21 @@ public final class EventListener implements Listener {
                     entityActions.computeIfAbsent(entityType, e -> new ArrayList<>()).add(action);
                 }
                 break;
+            case FISHING:
+                fishingActions.add(action);
+                break;
             default: throw new IllegalStateException(action.type.name());
             }
         }
         EnumSet<MaypoleAction> unusedActions = EnumSet.allOf(MaypoleAction.class);
         unusedActions.remove(NONE);
         for (List<MaypoleAction> list : blockActions.values()) {
-            for (MaypoleAction action : list) {
-                unusedActions.remove(action);
-            }
+            unusedActions.removeAll(list);
         }
         for (List<MaypoleAction> list : entityActions.values()) {
-            for (MaypoleAction action : list) {
-                unusedActions.remove(action);
-            }
+            unusedActions.removeAll(list);
         }
+        unusedActions.removeAll(fishingActions);
         if (!unusedActions.isEmpty()) {
             plugin.getLogger().warning("[EventListener] Unused MaypoleActions: " + unusedActions);
         }
@@ -171,6 +173,21 @@ public final class EventListener implements Listener {
             lines.add(join(noSeparators(), components));
         }
         event.sidebar(PlayerHudPriority.HIGH, lines);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    private void onPlayerFish(PlayerFishEvent event) {
+        switch (event.getState()) {
+        case CAUGHT_FISH: break;
+        default: return;
+        }
+        final Player player = event.getPlayer();
+        final Block block = event.getHook().getLocation().getBlock();
+        for (MaypoleAction action : fishingActions) {
+            if (action.type == MaypoleAction.Type.FISHING && action.checkBlock(block)) {
+                plugin.unlockCollectible(player, block, action);
+            }
+        }
     }
 
     @EventHandler
