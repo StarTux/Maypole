@@ -200,7 +200,7 @@ public final class MaypolePlugin extends JavaPlugin {
         // Dish out prizes for first completion
         if (completions == 0) {
             buildMaypole(player);
-            serverCommand("kite member Maypole3 " + player.getName());
+            serverCommand("kite member Maypole2024 " + player.getName());
         } else if (completions == 1) {
             serverCommand("titles unlockset " + player.getName() + " Blossom");
         } else {
