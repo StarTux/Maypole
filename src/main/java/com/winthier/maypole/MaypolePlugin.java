@@ -113,6 +113,7 @@ public final class MaypolePlugin extends JavaPlugin {
             }
         } else {
             if (maypoleEnabled) {
+                player.closeInventory();
                 player.openBook(maypoleBook.makeBook(session));
                 player.playSound(player.getLocation(), BLOCK_DISPENSER_DISPENSE, MASTER, 1.0f, 0.6f);
             }
@@ -267,6 +268,7 @@ public final class MaypolePlugin extends JavaPlugin {
         Session session = sessions.get(player);
         if (session == null || !session.isEnabled()) return false;
         ItemStack book = maypoleBook.makeBook(session);
+        player.closeInventory();
         player.openBook(book);
         player.playSound(player.getLocation(), ITEM_BOOK_PAGE_TURN, MASTER, 2.0f, 1.5f);
         return true;
