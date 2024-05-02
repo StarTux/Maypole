@@ -199,7 +199,7 @@ public enum MaypoleAction {
     },
     PICK_COLD_COARSE_DIRT(Type.BLOCK_BREAK, Material.COARSE_DIRT) {
         @Override public boolean checkBlock(Block block) {
-            return block.getTemperature() <= 0.3;
+            return block.getTemperature() < 0.301;
         }
 
         @Override public List<String> getBookPages() {
