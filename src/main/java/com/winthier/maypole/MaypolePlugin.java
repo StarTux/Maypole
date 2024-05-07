@@ -39,7 +39,7 @@ import static org.bukkit.SoundCategory.*;
 
 @Getter
 public final class MaypolePlugin extends JavaPlugin {
-    protected static final List<BlockFace> SKULL_FACING = List.of(BlockFace.WEST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST);
+    protected static final List<BlockFace> SKULL_FACING = List.of(BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH);
     protected final Random random = new Random();
     protected final MaypoleCommand command = new MaypoleCommand(this);
     protected final MaypoleAdminCommand adminCommand = new MaypoleAdminCommand(this);
