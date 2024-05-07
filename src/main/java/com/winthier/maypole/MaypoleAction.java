@@ -184,7 +184,8 @@ public enum MaypoleAction {
         @Override public boolean checkBlock(Block block) {
             String biome = block.getBiome().name();
             return biome.contains("BEACH")
-                || biome.contains("SHORE");
+                || biome.contains("SHORE")
+                || biome.contains("OCEAN");
         }
 
         @Override public List<String> getBookPages() {
@@ -357,7 +358,8 @@ public enum MaypoleAction {
         @Override public boolean checkBlock(Block block) {
             String biome = block.getBiome().name();
             return biome.contains("BEACH")
-                || biome.contains("SHORE");
+                || biome.contains("SHORE")
+                || biome.contains("OCEAN");
         }
     },
     FISH_COLD(Type.FISHING, Material.SALMON) {
