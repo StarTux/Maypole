@@ -59,6 +59,7 @@ public final class MaypolePlugin extends JavaPlugin {
                                                text("o", MAYPOLE_YELLOW),
                                                text("l", MAYPOLE_BLUE),
                                                text("e", MAYPOLE_YELLOW));
+    public static final int YEAR = 2024;
 
     @Override
     public void onEnable() {
@@ -201,7 +202,7 @@ public final class MaypolePlugin extends JavaPlugin {
         // Dish out prizes for first completion
         if (completions == 0) {
             buildMaypole(player);
-            serverCommand("kite member Maypole2024 " + player.getName());
+            serverCommand("kite member Maypole" + YEAR + " " + player.getName());
         } else if (completions == 1) {
             serverCommand("titles unlockset " + player.getName() + " Blossom");
         } else {

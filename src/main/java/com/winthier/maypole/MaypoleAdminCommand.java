@@ -20,9 +20,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import static com.winthier.maypole.sql.Database.database;
-import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.Component.textOfChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
@@ -143,9 +142,8 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
                 }
                 Connect.get().broadcastMessage("Maypole", "ReloadSettings");
                 plugin.loadSettings();
-                sender.sendMessage(join(noSeparators(),
-                                        text("Maypole enabled: ", AQUA),
-                                        text("" + value, value ? GREEN : RED)));
+                sender.sendMessage(textOfChildren(text("Maypole enabled: ", AQUA),
+                                                  text("" + value, value ? GREEN : RED)));
             });
         return true;
     }
@@ -160,19 +158,20 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
             completions.put(row.getUuid(), row.getCompletions());
         }
         int trophies = Highscore.reward(collectibles,
-                                     "maypole",
-                                     TrophyCategory.MAYPOLE,
-                                     plugin.TITLE,
-                                     hi -> {
-                                         int collected = collectibles.get(hi.uuid);
-                                         int completed = completions.get(hi.uuid);
-                                         return "You collected "
-                                             + collected + " Maypole ingredient" + (collected == 1 ? "" : "s")
-                                             + (completed > 0
-                                                ? (" and completed "
-                                                   + completed + " collection" + (completed == 1 ? "" : "s"))
-                                                : "");
-                                     });
+                                        "maypole",
+                                        TrophyCategory.MAYPOLE,
+                                        textOfChildren(plugin.TITLE,
+                                                       text(" " + MaypolePlugin.YEAR, MaypolePlugin.MAYPOLE_BLUE)),
+                                        hi -> {
+                                            int collected = collectibles.get(hi.uuid);
+                                            int completed = completions.get(hi.uuid);
+                                            return "You collected "
+                                                + collected + " Maypole ingredient" + (collected == 1 ? "" : "s")
+                                                + (completed > 0
+                                                   ? (" and completed "
+                                                      + completed + " collection" + (completed == 1 ? "" : "s"))
+                                                   : "");
+                                        });
         sender.sendMessage(text("Rewarded " + trophies + " players with trophies", AQUA));
         com.winthier.maypole.sql.Highscore.list(highscores -> {
                 int maybirds = 0;
@@ -195,15 +194,14 @@ public final class MaypoleAdminCommand extends AbstractCommand<MaypolePlugin> {
         PlayerCache target = PlayerCache.require(args[0]);
         plugin.sessions.apply(target.uuid, session -> {
                 sender.sendMessage(text(target.name + " Maypole progress", YELLOW));
-                sender.sendMessage(join(noSeparators(), text("Completions: ", GRAY), text(session.getCompletions(), AQUA)));
-                sender.sendMessage(join(noSeparators(), text("Collectibles: ", GRAY), text(session.getCollectibles(), AQUA)));
+                sender.sendMessage(textOfChildren(text("Completions: ", GRAY), text(session.getCompletions(), AQUA)));
+                sender.sendMessage(textOfChildren(text("Collectibles: ", GRAY), text(session.getCollectibles(), AQUA)));
                 for (Collectible it : Collectible.values()) {
                     boolean has = session.has(it);
-                    sender.sendMessage(join(noSeparators(),
-                                            text(it + ": ", GRAY),
-                                            text(has, has ? GREEN : RED),
-                                            text(", ", DARK_GRAY),
-                                            text("" + session.getAction(it), AQUA)));
+                    sender.sendMessage(textOfChildren(text(it + ": ", GRAY),
+                                                      text(has, has ? GREEN : RED),
+                                                      text(", ", DARK_GRAY),
+                                                      text("" + session.getAction(it), AQUA)));
                 }
             });
         return true;
