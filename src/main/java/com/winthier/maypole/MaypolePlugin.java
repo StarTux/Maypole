@@ -16,6 +16,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -163,7 +164,7 @@ public final class MaypolePlugin extends JavaPlugin {
         loadHighscore();
         sendUnlockMessage(player, collectible);
         block.getWorld().playSound(loc, ENTITY_PLAYER_LEVELUP, MASTER, 0.5f, 1.5f);
-        block.getWorld().spawnParticle(FIREWORKS_SPARK, loc, 50, 1.0, 1.0, 1.0, 0.0);
+        block.getWorld().spawnParticle(FIREWORK, loc, 50, 1.0, 1.0, 1.0, 0.0);
     }
 
     protected void sendUnlockMessage(Player player, Collectible collectible) {
@@ -252,7 +253,8 @@ public final class MaypolePlugin extends JavaPlugin {
                         Vector v = playerLocation.toVector().multiply(p)
                             .add(blockLocation.toVector().multiply(1.0 - p));
                         Location loc = v.toLocation(playerLocation.getWorld(), 0f, 0f);
-                        playerLocation.getWorld().spawnParticle(SPELL_MOB, loc, 1, 0.5, 0.5, 0.5, -1f);
+                        playerLocation.getWorld().spawnParticle(ENTITY_EFFECT, loc, 1, 0.5, 0.5, 0.5, 0f,
+                                                                Color.fromRGB(random.nextInt(256), random.nextInt(256), random.nextInt(256)));
                     }
                 }.runTaskTimer(this, 1, 1);
                 placed = true;
