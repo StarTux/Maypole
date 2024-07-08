@@ -177,6 +177,7 @@ public final class EventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void onPlayerFish(PlayerFishEvent event) {
+        if (!plugin.isMaypoleEnabled()) return;
         switch (event.getState()) {
         case CAUGHT_FISH: break;
         default: return;
