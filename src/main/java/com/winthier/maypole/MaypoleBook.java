@@ -20,7 +20,7 @@ import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.Component.textOfChildren;
 import static net.kyori.adventure.text.JoinConfiguration.separator;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static net.kyori.adventure.text.format.TextDecoration.*;
@@ -32,19 +32,16 @@ public final class MaypoleBook {
     private static final Component[] INTRODUCTION = new Component[] {
         text("Spring has sprung, my friends, and this month, it is finally time to celebrate the obligatory May Festival."),
         text("Aside from music, dancing, and free drinks, by far the most important tradition thereof is the construction of the Maypole."),
-        join(noSeparators(),
-             text("For this task however, we require the cooperation of every able-bodied man, woman, and child, in the "),
-             text("Mining Worlds", DARK_BLUE, UNDERLINED),
-             text(" of Cavetale.")),
+        textOfChildren(text("For this task however, we require the cooperation of every able-bodied man, woman, and child, in the "),
+                       text("Mining Worlds", DARK_BLUE, UNDERLINED),
+                       text(" of Cavetale.")),
         text("The following is a list of the required ingredients for its construction. Some are mere decoration, others yield hidden powers known only to our top alchemists. Gather one of each and return them to the Maypole Steward."),
-        join(noSeparators(),
-             text("Keep in mind that all materials must be gathered in the "),
-             text("Mining Worlds", DARK_BLUE, UNDERLINED),
-             text(" and have to be natural, meaning you cannot just place them yourself.")),
-        join(noSeparators(),
-             text("Thank you in advance and good luck,"),
-             newline(), newline(),
-             text("The Council of May", DARK_GRAY, ITALIC)),
+        textOfChildren(text("Keep in mind that all materials must be gathered in the "),
+                       text("Mining Worlds", DARK_BLUE, UNDERLINED),
+                       text(" and have to be natural, meaning you cannot just place them yourself.")),
+        textOfChildren(text("Thank you in advance and good luck,"),
+                       newline(), newline(),
+                       text("The Council of May", DARK_GRAY, ITALIC)),
     };
 
     public void enable() { }
@@ -55,13 +52,18 @@ public final class MaypoleBook {
 
     public ItemStack makeBook(Session session) {
         List<Component> content = new ArrayList<>();
+        content.add(textOfChildren(text("Highscore", DARK_BLUE, BOLD)
+                                   .clickEvent(ClickEvent.changePage(1))
+                                   .hoverEvent(HoverEvent.showText(text("Return to table of contents"))),
+                                   newline(),
+                                   newline(),
+                                   join(separator(newline()), plugin.getHighscoreDisplay())));
         for (Component page : INTRODUCTION) {
-            content.add(join(noSeparators(),
-                             (text("Introduction", DARK_BLUE, BOLD)
-                              .clickEvent(ClickEvent.changePage(1))
-                              .hoverEvent(HoverEvent.showText(text("Return to table of contents")))),
-                             newline(),
-                             page));
+            content.add(textOfChildren((text("Introduction", DARK_BLUE, BOLD)
+                                        .clickEvent(ClickEvent.changePage(1))
+                                        .hoverEvent(HoverEvent.showText(text("Return to table of contents")))),
+                                       newline(),
+                                       page));
         }
         Map<Collectible, Integer> pageNumbers = new EnumMap<>(Collectible.class);
         for (Collectible collectible : Collectible.values()) {
@@ -71,14 +73,12 @@ public final class MaypoleBook {
             pages.addAll(collectible.getBookPages());
             pages.addAll(action.getBookPages());
             for (String page : pages) {
-                content.add(join(noSeparators(),
-                                 (join(noSeparators(),
-                                       collectible.mytems.component,
-                                       text(collectible.nice, DARK_BLUE, BOLD))
-                                  .clickEvent(ClickEvent.changePage(1))
-                                  .hoverEvent(HoverEvent.showText(text("Return to table of contents")))),
-                                 newline(),
-                                 text(page)));
+                content.add(textOfChildren((textOfChildren(collectible.mytems.component,
+                                                           text(collectible.nice, DARK_BLUE, BOLD))
+                                            .clickEvent(ClickEvent.changePage(1))
+                                            .hoverEvent(HoverEvent.showText(text("Return to table of contents")))),
+                                           newline(),
+                                           text(page)));
             }
         }
         List<Component> tocs = new ArrayList<>();
@@ -130,9 +130,14 @@ public final class MaypoleBook {
         toc.append(newline());
         toc.append(newline());
         targetPage = TOC_OFFSET;
-        toc.append(join(noSeparators(),
-                        text(subscript(fmt(targetPage)) + " ", DARK_GRAY),
-                        text(tiny("introduction"), DARK_BLUE))
+        toc.append(textOfChildren(text(subscript(fmt(targetPage)) + " ", DARK_GRAY),
+                                  text(tiny("highscore"), DARK_BLUE))
+                   .clickEvent(ClickEvent.changePage(targetPage))
+                   .hoverEvent(HoverEvent.showText(text("Jump to page " + targetPage, GRAY, ITALIC))));
+        toc.append(newline());
+        targetPage += 1;
+        toc.append(textOfChildren(text(subscript(fmt(targetPage)) + " ", DARK_GRAY),
+                                  text(tiny("introduction"), DARK_BLUE))
                    .clickEvent(ClickEvent.changePage(targetPage))
                    .hoverEvent(HoverEvent.showText(text("Jump to page " + targetPage, GRAY, ITALIC))));
         toc.append(newline());
@@ -140,14 +145,12 @@ public final class MaypoleBook {
             Collectible collectible = collectibles[i];
             Component icon = collectible.mytems.component;
             targetPage = pageNumbers.get(collectible);
-            toc.append(join(noSeparators(),
-                            text(subscript(fmt(targetPage)) + " ", DARK_GRAY),
-                            icon,
-                            text(tiny(collectible.nice.toLowerCase()), DARK_BLUE))
+            toc.append(textOfChildren(text(subscript(fmt(targetPage)) + " ", DARK_GRAY),
+                                      icon,
+                                      text(tiny(collectible.nice.toLowerCase()), DARK_BLUE))
                        .clickEvent(ClickEvent.changePage(targetPage))
-                       .hoverEvent(HoverEvent.showText(join(noSeparators(),
-                                                            icon, text(collectible.nice, BLUE), newline(),
-                                                            text("Jump to page " + targetPage, GRAY, ITALIC)))));
+                       .hoverEvent(HoverEvent.showText(textOfChildren(icon, text(collectible.nice, BLUE), newline(),
+                                                                      text("Jump to page " + targetPage, GRAY, ITALIC)))));
             toc.append(newline());
             if (i == 4) {
                 tocs.add(toc.build());

@@ -20,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -31,7 +32,6 @@ import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
-import static org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK;
 import static org.bukkit.inventory.EquipmentSlot.HAND;
 
 @RequiredArgsConstructor
@@ -132,22 +132,35 @@ public final class EventListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!plugin.isMaypoleEnabled()) return;
-        if (event.getHand() == HAND && event.getAction() == RIGHT_CLICK_BLOCK
-            && event.hasBlock() && plugin.tag.pole.isAt(event.getClickedBlock())) {
-            plugin.interact(event.getPlayer());
-            event.setCancelled(true);
+        if (!plugin.isMaypoleEnabled()) {
             return;
         }
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) {
+            return;
+        }
+        if (event.getHand() != HAND || !event.hasBlock() || !plugin.tag.pole.isAt(event.getClickedBlock())) {
+            return;
+        }
+        plugin.interact(event.getPlayer());
+        event.setCancelled(true);
     }
 
     @EventHandler
-    public void onPlayerHud(PlayerHudEvent event) {
+    private void onPlayerHud(PlayerHudEvent event) {
         if (!plugin.isMaypoleEnabled()) return;
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
         if (!player.hasPermission("maypole.maypole")) return;
-        Session session = plugin.sessions.get(player);
+        final Session session = plugin.sessions.get(player);
         if (session == null || !session.isEnabled()) return;
+        if (!plugin.getHighscoreDisplay().isEmpty() && plugin.getTag().getPole().isNearby(player.getLocation())) {
+            // Near the Maypole, we show the highscore
+            final List<Component> lines = new ArrayList<>(20);
+            lines.add(MaypolePlugin.TITLE);
+            lines.addAll(plugin.getHighscoreDisplay());
+            event.sidebar(PlayerHudPriority.DEFAULT, lines);
+            return;
+        }
+        // Display progress
         if (session.getCompletions() > 0 && session.getCollectibles() % 16 == 0) return;
         Collectible[] collectibles = Collectible.values();
         final int lineCount = 2;
@@ -172,7 +185,7 @@ public final class EventListener implements Listener {
         for (List<Component> components : lines2) {
             lines.add(join(noSeparators(), components));
         }
-        event.sidebar(PlayerHudPriority.HIGH, lines);
+        event.sidebar(PlayerHudPriority.DEFAULT, lines);
     }
 
     @EventHandler(ignoreCancelled = true)

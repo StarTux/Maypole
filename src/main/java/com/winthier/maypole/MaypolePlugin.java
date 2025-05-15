@@ -1,14 +1,17 @@
 package com.winthier.maypole;
 
+import com.cavetale.core.playercache.PlayerCache;
 import com.cavetale.core.util.Json;
 import com.cavetale.mytems.Mytems;
 import com.cavetale.mytems.MytemsPlugin;
+import com.cavetale.mytems.item.font.Glyph;
 import com.winthier.maypole.session.Session;
 import com.winthier.maypole.session.Sessions;
 import com.winthier.maypole.sql.Database;
 import com.winthier.maypole.sql.Highscore;
 import com.winthier.maypole.sql.SQLSetting;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import lombok.Getter;
@@ -28,9 +31,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import static net.kyori.adventure.text.Component.join;
+import static com.cavetale.core.font.Unicode.subscript;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.Component.textOfChildren;
 import static net.kyori.adventure.text.event.ClickEvent.runCommand;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static net.kyori.adventure.text.format.TextColor.color;
@@ -50,16 +53,16 @@ public final class MaypolePlugin extends JavaPlugin {
     private List<SQLSetting> settings = List.of();
     private boolean maypoleEnabled;
     protected List<Highscore> highscore = List.of();
+    private List<Component> highscoreDisplay = List.of();
     public static final TextColor MAYPOLE_YELLOW = color(0xF0E68C);
     public static final TextColor MAYPOLE_BLUE = color(0x87cefa);
-    public static final Component TITLE = join(noSeparators(),
-                                               text("M", MAYPOLE_YELLOW),
-                                               text("a", MAYPOLE_BLUE),
-                                               text("y", MAYPOLE_YELLOW),
-                                               text("p", MAYPOLE_BLUE),
-                                               text("o", MAYPOLE_YELLOW),
-                                               text("l", MAYPOLE_BLUE),
-                                               text("e", MAYPOLE_YELLOW));
+    public static final Component TITLE = textOfChildren(text("M", MAYPOLE_YELLOW),
+                                                         text("a", MAYPOLE_BLUE),
+                                                         text("y", MAYPOLE_YELLOW),
+                                                         text("p", MAYPOLE_BLUE),
+                                                         text("o", MAYPOLE_YELLOW),
+                                                         text("l", MAYPOLE_BLUE),
+                                                         text("e", MAYPOLE_YELLOW));
     public static final int YEAR = 2025;
 
     @Override
@@ -123,10 +126,9 @@ public final class MaypolePlugin extends JavaPlugin {
             if (completions == 1) {
                 player.sendMessage(text("You have completed your collection once before", GREEN));
             } else if (completions > 1) {
-                player.sendMessage(join(noSeparators(),
-                                        text("You have completed your collection ", GREEN),
-                                        text(completions, WHITE),
-                                        text(" times")));
+                player.sendMessage(textOfChildren(text("You have completed your collection ", GREEN),
+                                                  text(completions, WHITE),
+                                                  text(" times")));
             }
         }
     }
@@ -168,10 +170,9 @@ public final class MaypolePlugin extends JavaPlugin {
     }
 
     protected void sendUnlockMessage(Player player, Collectible collectible) {
-        Component message = join(noSeparators(),
-                                 text("You collect the ", GREEN),
-                                 collectible.mytems.component,
-                                 text(" " + collectible.nice, GREEN));
+        Component message = textOfChildren(text("You collect the ", GREEN),
+                                           collectible.mytems.component,
+                                           text(" " + collectible.nice, GREEN));
         player.sendActionBar(message);
         final String cmd = "/maypole book";
         player.sendMessage(message
@@ -287,6 +288,17 @@ public final class MaypolePlugin extends JavaPlugin {
     }
 
     protected void loadHighscore() {
-        Highscore.list(ls -> this.highscore = ls);
+        Highscore.list(ls -> {
+                highscore = ls;
+                highscoreDisplay = new ArrayList<>(10);
+                for (int i = 0; i < 10; i += 1) {
+                    if (i >= highscore.size()) break;
+                    final Highscore hi = highscore.get(i);
+                    if (hi.getRow().getCollectibles() == 0) continue;
+                    highscoreDisplay.add(textOfChildren(Glyph.toComponent("" + hi.getPlacement()),
+                                                        text(subscript(hi.getRow().getCollectibles()), GRAY),
+                                                        text(PlayerCache.nameForUuid(hi.getRow().getUuid()))));
+                }
+            });
     }
 }
