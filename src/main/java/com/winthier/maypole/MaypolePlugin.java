@@ -1,5 +1,6 @@
 package com.winthier.maypole;
 
+import com.cavetale.core.connect.Connect;
 import com.cavetale.core.playercache.PlayerCache;
 import com.cavetale.core.util.Json;
 import com.cavetale.mytems.Mytems;
@@ -164,6 +165,7 @@ public final class MaypolePlugin extends JavaPlugin {
         }
         session.give(collectible);
         loadHighscore();
+        Connect.get().broadcastMessage("Maypole", "ReloadHighscore");
         sendUnlockMessage(player, collectible);
         block.getWorld().playSound(loc, ENTITY_PLAYER_LEVELUP, MASTER, 0.5f, 1.5f);
         block.getWorld().spawnParticle(FIREWORK, loc, 50, 1.0, 1.0, 1.0, 0.0);
@@ -211,6 +213,7 @@ public final class MaypolePlugin extends JavaPlugin {
             Mytems.KITTY_COIN.giveItemStack(player, 1);
         }
         loadHighscore();
+        Connect.get().broadcastMessage("Maypole", "ReloadHighscore");
         player.playSound(player.getLocation(), ENTITY_ENDER_DRAGON_DEATH, MASTER, 0.25f, 1.25f);
         player.sendMessage(text("You return a complete collection to the Maypole!", MAYPOLE_YELLOW));
         return true;

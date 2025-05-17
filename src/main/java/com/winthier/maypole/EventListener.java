@@ -216,6 +216,9 @@ public final class EventListener implements Listener {
             plugin.loadSettings();
             plugin.getLogger().info("ReloadSettings received");
             break;
+        case "ReloadHighscore":
+            plugin.loadHighscore();
+            break;
         default:
             plugin.getLogger().warning("Unknown message received: " + event.getPayload());
         }
