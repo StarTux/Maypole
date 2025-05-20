@@ -38,8 +38,8 @@ public final class Tag implements Serializable {
 
         public boolean isNearby(Location location) {
             return isIn(location.getWorld())
-                && Math.abs(location.getBlockX() - x) < 32
-                && Math.abs(location.getBlockZ() - z) < 32;
+                && Math.abs(location.getBlockX() - x) < 12
+                && Math.abs(location.getBlockZ() - z) < 12;
         }
 
         @Override
