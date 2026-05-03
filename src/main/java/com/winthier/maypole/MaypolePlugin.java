@@ -64,7 +64,7 @@ public final class MaypolePlugin extends JavaPlugin {
                                                          text("o", MAYPOLE_YELLOW),
                                                          text("l", MAYPOLE_BLUE),
                                                          text("e", MAYPOLE_YELLOW));
-    public static final int YEAR = 2025;
+    public static final int YEAR = 2026;
 
     @Override
     public void onEnable() {
